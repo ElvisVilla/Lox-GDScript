@@ -5,11 +5,12 @@ var left: Expr
 var operator: Token
 var right: Expr
 
-func create(left: Expr, operator: Token, right: Expr):
-	self.left = left
-	self.operator = operator
-	self.right = right
-	return self
+static func create(left: Expr, operator: Token, right: Expr):
+	var instance = Binary.new()
+	instance.left = left
+	instance.operator = operator
+	instance.right = right
+	return instance
 
 
 func accept(visitor: ExprVisitor) -> Variant:

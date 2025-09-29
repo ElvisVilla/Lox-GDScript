@@ -3,9 +3,10 @@ class_name Literal
 
 var value: Variant
 
-func create(value: Variant):
-	self.value = value
-	return self
+static func create(value: Variant):
+	var instance = Literal.new()
+	instance.value = value
+	return instance
 
 
 func accept(visitor: ExprVisitor) -> Variant:

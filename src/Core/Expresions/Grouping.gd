@@ -3,9 +3,10 @@ class_name Grouping
 
 var expression: Expr
 
-func create(expression: Expr):
-	self.expression = expression
-	return self
+static func create(expression: Expr):
+	var instance = Grouping.new()
+	instance.expression = expression
+	return instance
 
 
 func accept(visitor: ExprVisitor) -> Variant:

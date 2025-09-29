@@ -5,12 +5,12 @@ var source = "Hello world"
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 		# Lox.main("res://TestFile.gd")
-	var expression = Binary.new().create(
-		Unary.new().create(
+	var expression = Binary.create(
+		Unary.create(
 			Token.new(Token.TokenType.MINUS, "-", null, 1),
-			Literal.new().create(123)),
+			Literal.create(123)),
 		Token.new(Token.TokenType.STAR, "*", null, 1),
-		Grouping.new().create(Literal.new().create(45.67)))
+		Grouping.create(Literal.create(45.67)))
 
 	var ast = ASTPrinter.new()
 	print(ast.print(expression))

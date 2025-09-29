@@ -46,11 +46,13 @@ func defineType(outputDir: String, baseName: String, type: String):
 		code += "var %s: %s\n" % [field[0], field[1]]
 
 	# func create(params) serve as a constructor instead of _init()
-	code += "\nfunc create(" + params + "):\n"
+	code += "\nstatic func create(" + params + "):\n"
+	code += "\tvar instance = %s.new()\n" % className
 	for field in fieldsArrangedForGDScript:
-		code += "\tself.%s = %s\n" % [field[0], field[0]]
+		code += "\tinstance.%s = %s\n" % [field[0], field[0]]
 	
-	code += "\treturn self\n\n" # end of function
+	code += "\treturn instance\n\n"
+	# code += "\treturn self\n\n" # end of function
 
 	code += "\nfunc accept(visitor: ExprVisitor) -> Variant:\n"
 	code += "\treturn visitor.visit%s%s(self)\n" % [className, baseName]
