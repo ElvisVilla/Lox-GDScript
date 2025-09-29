@@ -8,7 +8,7 @@ func _run() -> void:
 	defineAst("res://src/Core/Expresions/", "Expr", [
 		"Binary   : Expr left, Token operator, Expr right",
       	"Grouping : Expr expression",
-      	"Literal  : Object value",
+      	"Literal  : Variant value",
       	"Unary    : Token operator, Expr right"
 	])
 
@@ -50,8 +50,26 @@ func defineType(outputDir: String, baseName: String, type: String):
 	for field in fieldsArrangedForGDScript:
 		code += "\tself.%s = %s\n" % [field[0], field[0]]
 	
+	code += "\treturn self\n\n" # end of function
+
 	code += "\nfunc accept(visitor: ExprVisitor) -> Variant:\n"
 	code += "\treturn visitor.visit%s%s(self)\n" % [className, baseName]
+
+	# _to_string() method
+	code += "\nfunc _to_string() -> String:\n"
+	
+	# Build the format string and values array
+	var formatParts: Array[String] = []
+	var valueParts: Array[String] = []
+	
+	for field in fieldsArrangedForGDScript:
+		formatParts.append("%s")
+		valueParts.append("str(self.%s)" % field[0])
+	
+	var formatString = " ".join(formatParts) # "%s %s %s"
+	var valuesString = ", ".join(valueParts) # "str(self.left), str(self.operator), str(self.right)"
+	
+	code += '\treturn "%s" %% [%s]\n' % [formatString, valuesString]
 
 	file.store_string(code)
 	file.close()
