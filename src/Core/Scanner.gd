@@ -78,7 +78,7 @@ func scanToken() -> void:
 			elif isAlpha(c):
 				identifier()
 			else:
-				GDSwift.error(line, "Unexpected Character")
+				Lox.error(line, "Unexpected Character")
 
 func identifier():
 	while (isAlphaNumeric(peek())): advance()
@@ -106,7 +106,7 @@ func string():
 		advance()
 
 	if isAtEnd():
-		GDSwift.error(line, "Unterminated string.")
+		Lox.error(line, "Unterminated string.")
 		return
 	# The closing "    
 	advance()

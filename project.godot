@@ -10,10 +10,16 @@ config_version=5
 
 [application]
 
-config/name="GDSwift"
+config/name="Lox-GDScript"
 run/main_scene="uid://cqow47bch5ocs"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[file_customization]
+
+folder_colors={
+"res://src/": "green"
+}
 
 [rendering]
 
