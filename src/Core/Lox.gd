@@ -57,15 +57,27 @@ static func run(source: String):
 	var scanner: Scanner = Scanner.new(source)
 	var tokens: Array[Token] = scanner.scanTokens()
 
-	# for now, just print the tokens.
-	for token in tokens:
-		print(token)
+	# for token in tokens:
+	# 	print(token)
+
+	var parser = Parser.new(tokens)
+	var expresion = parser.parse()
+
+	if hadError: return
+	
+	print(ASTPrinter.new().print(expresion))
 
 # For error reporting check other implementations of Lox
 # In the book he recomends to move this to "ErrorReport" that gets passed to the scanner
 # and parser so that we can swap out different reporting strategies  
 static func error(line: int, message: String):
 	report(line, "", message)
+
+static func errorWith(token: Token, message: String):
+	if token.type == token.TokenType.EOF:
+		report(token.line, "at end", message)
+	else:
+		report(token.line, "at '%s'" % token.lexeme, message)
 
 static func report(line: int, where: String, message: String):
 	print("line %s error %s : %s" % [line, where, message])

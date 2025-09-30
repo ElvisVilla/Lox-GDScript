@@ -83,7 +83,7 @@ func scanToken() -> void:
 func identifier():
 	while (isAlphaNumeric(peek())): advance()
 
-	var text = source.substr(start, current) # Using substr like this migth be wrong, need to test
+	var text = source.substr(start, current - start) # Using substr like this migth be wrong, need to test
 	var type = keywords.get(text)
 	if type == null: type = Token.TokenType.IDENTIFIER
 	addToken(type)
@@ -112,7 +112,7 @@ func string():
 	advance()
 
 	# use trim_prefix and trim_suffix instead of substr()
-	var value = source.substr(start + 1, current - 1) # This might be wrong, should be substr(start + 1, current - start - 2)
+	var value = source.substr(start + 1, current - start - 2) # This might be wrong, should be substr(start + 1, current - start - 2)
 	addToken(Token.TokenType.STRING, value)
 
 func isMatch(expected: String) -> bool:
