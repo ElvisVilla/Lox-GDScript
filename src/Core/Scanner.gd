@@ -70,7 +70,7 @@ func scanToken() -> void:
 			else:
 				addToken(Token.TokenType.SLASH)
 		' ', '\r', '\t': pass # ignore white spaces
-		'\n': current += 1
+		'\n': line += 1
 		'"': string()
 		_:
 			if isDigit(c):
