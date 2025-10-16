@@ -1,10 +1,33 @@
-class_name Interpreter extends ExprVisitor
+# Godot doesnt have interfaces and ExprVisitor is an abstract class, like StmtVisitor
+# Todo: Find another solution, ducktyping could be the option here
+class_name Interpreter extends ExprVisitor # , StmtVisitor
 
+var environment := LoxEnvironment.new()
 
-func interpret(expression: Expr):
-	var value = evaluate(expression)
-	print(value)
+func interpret(statements: Array[Stmt]):
+	for stmt: Stmt in statements:
+		execute(stmt)
 	# runetime errors? Godot doesnt have try catch
+
+func visitLoxExpressionStmt(stmt: LoxExpression):
+	evaluate(stmt.expression)
+
+func visitPrintStmt(stmt: Print):
+	var value = evaluate(stmt.expression)
+	print(stringify(value))
+
+func visitVarStmt(stmt: Var):
+	var value = null
+	if stmt.initializer != null:
+		value = evaluate(stmt.initializer)
+
+	environment.define(stmt.name.lexeme, value)
+	# return null
+
+func visitAssignExpr(expr: Assign):
+	var value = evaluate(expr.value)
+	environment.assign(expr.name, value)
+	return value
 
 func visitBinaryExpr(expr: Binary) -> Variant:
 	var left = evaluate(expr.left)
@@ -71,6 +94,14 @@ func visitUnaryExpr(expr: Unary) -> Variant:
 
 	return null
 
+func visitVariableExpr(expr: Variable):
+	var value = environment.getValue(expr.name)
+	if value == null:
+		var error = RuntimeError.new(expr.name, "variable '%s' has not been initialized" % expr.name.lexeme)
+		push_error(error._to_string())
+		# assert(false)
+	return value
+
 func checkNumberOperand(operator: Token, operand: Variant):
 	if operand is float: return
 	var error = RuntimeError.new(operator, "operand most be a number")
@@ -105,5 +136,31 @@ func stringify(item: Variant) -> String:
 
 	return str(item)
 
+
+# In this part is where the ExprVisitor and StmtVisitor is required, since we are passing ourself
+# and expr.accept() expects a visitor 
+
 func evaluate(expr: Expr) -> Variant:
-	return expr.accept(self)
+	return expr.accept(self) # Expects an ExpressionVisitor
+
+func execute(stmt: Stmt):
+	stmt.accept(self) # Expects an ExpressionVisitor
+
+func executeBlock(statements: Array[Stmt], environment: LoxEnvironment):
+	var previous = self.environment
+	self.environment = environment
+
+	for statement: Stmt in statements:
+		execute(statement)
+
+		# GDScript doesnt have a try/catch/finally like Java
+		# This line is not in the book, but is added here to break / exit the loop and -> 
+		if Lox.hadRuntimeError:
+			break
+
+	# -> restore the environment after the loop in case of runtimeError
+	self.environment = previous
+
+func visitBlockStmt(stmt: Block):
+	executeBlock(stmt.statements, LoxEnvironment.new(environment))
+	return null

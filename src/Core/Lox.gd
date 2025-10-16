@@ -63,11 +63,12 @@ static func run(source: String):
 	# 	print(token)
 
 	var parser = Parser.new(tokens)
-	var expresion = parser.parse()
+	var statements: Array[Stmt] = parser.parse()
 
 	if hadError: return
 	
-	interpreter.interpret(expresion)
+	interpreter.interpret(statements)
+	
 	# print(ASTPrinter.new().print(expresion))
 
 # For error reporting check other implementations of Lox

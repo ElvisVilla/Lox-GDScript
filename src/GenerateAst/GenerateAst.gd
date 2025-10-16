@@ -6,10 +6,19 @@ class_name GenerateAst
 # Automates the creation of generating all file classes for the tree-types
 func _run() -> void:
 	defineAst("res://src/Core/Expresions/", "Expr", [
+		"Assign : Token name, Expr value",
 		"Binary   : Expr left, Token operator, Expr right",
       	"Grouping : Expr expression",
       	"Literal  : Variant value",
-      	"Unary    : Token operator, Expr right"
+      	"Unary    : Token operator, Expr right",
+		"Variable: Token name",
+	])
+
+	defineAst("res://src/Core/Statements/", "Stmt", [
+		"Block : Array[Stmt] statements",
+		"LoxExpression : Expr expression", # Expression collides with a Godot class, LoxExpression used instead
+		"Print : Expr expression",
+		"Var : Token name, Expr initializer",
 	])
 
 

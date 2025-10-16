@@ -7,12 +7,67 @@ var current: int = 0
 func _init(tokens: Array[Token]) -> void:
 	self.tokens = tokens
 
-func parse() -> Expr:
-	return expresion()
+func parse() -> Array[Stmt]:
+	var statements: Array[Stmt]
+	while !isAtEnd():
+		statements.append(declaration())
+
+	return statements
 	
 
-func expresion() -> Expr:
-	return equality()
+func expression() -> Expr:
+	return assignment()
+
+func declaration() -> Stmt:
+	if isMatch(Token.TokenType.VAR): return varDeclaration()
+	return statement()
+
+func statement() -> Stmt:
+	if isMatch(Token.TokenType.PRINT): return printStatement()
+	if isMatch(Token.TokenType.LEFT_BRACE): return Block.create(block())
+	return expressionStatement()
+
+func printStatement() -> Stmt:
+	var value = expression()
+	# consume(Token.TokenType.SEMICOLON, "Expected ';' after value")
+	return Print.create(value)
+
+func varDeclaration() -> Stmt:
+	var name = consume(Token.TokenType.IDENTIFIER, "Expect variable name")
+	var initializer: Expr = null
+	if isMatch(Token.TokenType.EQUAL):
+		initializer = expression()
+
+	# consume(Token.TokenType.SEMICOLON, "Expect ';' after variable declaration.")
+	return Var.create(name, initializer)
+
+func expressionStatement() -> Stmt:
+	var expr = expression()
+	# consume(Token.TokenType.SEMICOLON, "Expect ';' after the expression")
+	return LoxExpression.create(expr)
+
+func block() -> Array[Stmt]:
+	var statements: Array[Stmt]
+	while !check(Token.TokenType.RIGHT_BRACE) and !isAtEnd():
+		statements.append(declaration())
+
+	consume(Token.TokenType.RIGHT_BRACE, "Expect '}' after block.")
+	return statements
+
+func assignment() -> Expr:
+	var expr = equality()
+
+	if isMatch(Token.TokenType.EQUAL):
+		var equals = previous()
+		var value = assignment()
+
+		if expr is Variable:
+			var name = expr.name
+			return Assign.create(name, value)
+
+		error(equals, "Invalid assignment target.")
+
+	return expr
 
 func equality() -> Expr:
 	var expr = comparison()
@@ -70,9 +125,12 @@ func primary() -> Expr:
 	if isMatch(Token.TokenType.NUMBER, Token.TokenType.STRING):
 		return Literal.create(previous().literal)
 	
+	if isMatch(Token.TokenType.IDENTIFIER):
+		return Variable.create(previous())
+
 	if isMatch(Token.TokenType.LEFT_PAREN):
-		var expr = expresion()
-		consume(Token.TokenType.RIGHT_PAREN, "Expect ')' after expresion")
+		var expr = expression()
+		consume(Token.TokenType.RIGHT_PAREN, "Expect ')' after expression")
 		return Grouping.create(expr)
 	
 	# If we did everything right, null should never be return
@@ -89,6 +147,7 @@ func isMatch(...types: Array) -> bool:
 func consume(type: Token.TokenType, message: String) -> Token:
 	if check(type): return advance()
 	error(peek(), message)
+	synchronize() # to recover from errors
 	return null
 
 func check(type: Token.TokenType) -> bool:
