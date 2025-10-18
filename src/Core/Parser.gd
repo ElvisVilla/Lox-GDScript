@@ -23,9 +23,68 @@ func declaration() -> Stmt:
 	return statement()
 
 func statement() -> Stmt:
+	if isMatch(Token.TokenType.FOR): return forStatement()
+	if isMatch(Token.TokenType.IF): return ifStatement()
 	if isMatch(Token.TokenType.PRINT): return printStatement()
+	if isMatch(Token.TokenType.WHILE): return whileStatement()
 	if isMatch(Token.TokenType.LEFT_BRACE): return Block.create(block())
 	return expressionStatement()
+
+func forStatement() -> Stmt:
+	consume(Token.TokenType.LEFT_PAREN, "Expect '(' after 'for'.")
+
+	var initializer: Stmt = null
+	if isMatch(Token.TokenType.SEMICOLON):
+		initializer = null
+	elif isMatch(Token.TokenType.VAR):
+		initializer = varDeclaration()
+		consume(Token.TokenType.SEMICOLON, "Expect ';' after variable declaration.")
+	else:
+		initializer = expressionStatement()
+
+	var condition: Expr = null
+	if !check(Token.TokenType.SEMICOLON):
+		condition = expression()
+	
+	consume(Token.TokenType.SEMICOLON, "Expect ';' after loop condition.")
+	# print("After consuming semicolon, current token: ", peek().type, " ", peek().lexeme)
+
+	var increment: Expr = null
+	if !check(Token.TokenType.RIGHT_PAREN):
+		increment = expression()
+	
+	consume(Token.TokenType.RIGHT_PAREN, "Expect ')' after clauses.")
+	var body: Stmt = statement()
+
+	if increment != null:
+		body = Block.create([body, LoxExpression.create(increment)])
+
+	if condition == null:
+		condition = Literal.create(true)
+	
+	body = While.create(condition, body)
+
+	if initializer != null:
+		body = Block.create([initializer, body])
+
+	return body
+
+func ifStatement() -> Stmt:
+	# consume(Token.TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
+	var condition = expression()
+	# consume(Token.TokenType.RIGHT_PAREN, "Expect ')' after if condition.")
+
+	# Maybe to support Swift / Go style we could do this instead
+	consume(Token.TokenType.LEFT_BRACE, "Expect '{' after if condition.")
+
+	var thenBranch = statement()
+	consume(Token.TokenType.RIGHT_BRACE, "Expect '}' after if condition.")
+	var elseBranch = null
+	if isMatch(Token.TokenType.ELSE):
+		elseBranch = statement()
+
+	return If.create(condition, thenBranch, elseBranch)
+
 
 func printStatement() -> Stmt:
 	var value = expression()
@@ -38,8 +97,17 @@ func varDeclaration() -> Stmt:
 	if isMatch(Token.TokenType.EQUAL):
 		initializer = expression()
 
-	# consume(Token.TokenType.SEMICOLON, "Expect ';' after variable declaration.")
+	# for Swift/GDScript sintax this needs to be commented 
+	#consume(Token.TokenType.SEMICOLON, "Expect ';' after variable declaration.")
 	return Var.create(name, initializer)
+
+func whileStatement() -> Stmt:
+	consume(Token.TokenType.LEFT_PAREN, "Expect '(' after 'while'.")
+	var condition = expression()
+	consume(Token.TokenType.RIGHT_PAREN, "Expect ')' after condition")
+	var body = statement()
+
+	return While.create(condition, body)
 
 func expressionStatement() -> Stmt:
 	var expr = expression()
@@ -55,7 +123,7 @@ func block() -> Array[Stmt]:
 	return statements
 
 func assignment() -> Expr:
-	var expr = equality()
+	var expr = logicOr()
 
 	if isMatch(Token.TokenType.EQUAL):
 		var equals = previous()
@@ -69,10 +137,30 @@ func assignment() -> Expr:
 
 	return expr
 
+func logicOr() -> Expr:
+	var expr = logicAnd()
+
+	while isMatch(Token.TokenType.OR):
+		var operator = previous()
+		var right = logicAnd()
+		expr = Logical.create(expr, operator, right)
+	
+	return expr
+
+func logicAnd() -> Expr:
+	var expr = equality()
+
+	while isMatch(Token.TokenType.AND):
+		var operator = previous()
+		var right = equality()
+		expr = Logical.create(expr, operator, right)
+
+	return expr
+
 func equality() -> Expr:
 	var expr = comparison()
 
-	while (isMatch(Token.TokenType.BANG_EQUAL, Token.TokenType.EQUAL_EQUAL)):
+	while isMatch(Token.TokenType.BANG_EQUAL, Token.TokenType.EQUAL_EQUAL):
 		var operator = previous()
 		var right = comparison()
 		expr = Binary.create(expr, operator, right)
@@ -118,6 +206,7 @@ func unary() -> Expr:
 	return primary()
 
 func primary() -> Expr:
+	# print_debug("primary() called, current token: ", peek().type, " ", peek().lexeme)
 	if isMatch(Token.TokenType.FALSE): return Literal.create(false)
 	if isMatch(Token.TokenType.TRUE): return Literal.create(true)
 	if isMatch(Token.TokenType.NIL): return Literal.create(null)
@@ -134,6 +223,7 @@ func primary() -> Expr:
 		return Grouping.create(expr)
 	
 	# If we did everything right, null should never be return
+	# print_debug("Yeap, here is the error with")
 	return error(peek(), "Expect expression.")
 
 func isMatch(...types: Array) -> bool:

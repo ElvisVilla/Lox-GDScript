@@ -59,8 +59,8 @@ static func run(source: String):
 	var scanner: Scanner = Scanner.new(source)
 	var tokens: Array[Token] = scanner.scanTokens()
 
-	# for token in tokens:
-	# 	print(token)
+	#for token in tokens:
+		#print(token)
 
 	var parser = Parser.new(tokens)
 	var statements: Array[Stmt] = parser.parse()
@@ -68,7 +68,10 @@ static func run(source: String):
 	if hadError: return
 	
 	interpreter.interpret(statements)
-	
+	# var transpiler = GDScriptTranspiler.new()
+	# var gdCode = transpiler.transpile(statements)
+	# print(gdCode)
+
 	# print(ASTPrinter.new().print(expresion))
 
 # For error reporting check other implementations of Lox

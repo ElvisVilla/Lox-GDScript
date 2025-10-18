@@ -1,5 +1,10 @@
-var a = 1
-{
-  var a = a + 2
-  print a
+var count = 0
+while (count < 10) {
+  if count != 5 {
+	print("index: " + count)
+  }
+  else {
+	  print("Por el culo de la hinco!!")
+  }
+  count = count + 1
 }

@@ -12,6 +12,14 @@ func interpret(statements: Array[Stmt]):
 func visitLoxExpressionStmt(stmt: LoxExpression):
 	evaluate(stmt.expression)
 
+func visitIfStmt(stmt: If):
+	if isTruthy(evaluate(stmt.condition)):
+		execute(stmt.thenBranch)
+	elif stmt.elseBranch != null:
+		execute(stmt.elseBranch)
+	
+	return null
+
 func visitPrintStmt(stmt: Print):
 	var value = evaluate(stmt.expression)
 	print(stringify(value))
@@ -22,7 +30,13 @@ func visitVarStmt(stmt: Var):
 		value = evaluate(stmt.initializer)
 
 	environment.define(stmt.name.lexeme, value)
-	# return null
+	return null
+
+func visitWhileStmt(stmt: While):
+	while isTruthy(evaluate(stmt.condition)):
+		execute(stmt.body)
+
+	return null
 
 func visitAssignExpr(expr: Assign):
 	var value = evaluate(expr.value)
@@ -81,6 +95,16 @@ func visitGroupingExpr(expr: Grouping) -> Variant:
 
 func visitLiteralExpr(expr: Literal) -> Variant:
 	return expr.value
+
+func visitLogicalExpr(expr: Logical) -> Variant:
+	var left = evaluate(expr.left)
+
+	if expr.operator.type == Token.TokenType.OR:
+		if isTruthy(left): return left
+	else:
+		if !isTruthy(left): return left
+
+	return evaluate(expr.right)
 
 func visitUnaryExpr(expr: Unary) -> Variant:
 	var right = evaluate(expr.right)
