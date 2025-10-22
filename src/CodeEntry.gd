@@ -5,6 +5,8 @@ var source = "Hello world"
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	Lox.main("res://code.txt")
+
+
 	#var expression = Binary.create(
 		#Unary.create(
 			#Token.new(Token.TokenType.MINUS, "-", null, 1),

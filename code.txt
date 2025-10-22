@@ -1,10 +1,23 @@
-var count = 0
-while (count < 10) {
-  if count != 5 {
-	print("index: " + count)
+// func fib(n) {
+//   if (n <= 1) { return n }
+//   return fib(n - 2) + fib(n - 1)
+// }
+
+// for (var i = 0; i < 20; i = i + 1) {
+//   print fib(i)
+// }
+
+
+func makeCounter() {
+  var i = 0
+  func count() {
+	i = i + 1
+	print i
   }
-  else {
-	  print("Por el culo de la hinco!!")
-  }
-  count = count + 1
+
+  return count
 }
+
+var counter = makeCounter()
+counter() // "1".
+counter() // "2".

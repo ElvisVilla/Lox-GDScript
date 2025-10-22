@@ -19,6 +19,7 @@ func expression() -> Expr:
 	return assignment()
 
 func declaration() -> Stmt:
+	if isMatch(Token.TokenType.FUNC): return function("function")
 	if isMatch(Token.TokenType.VAR): return varDeclaration()
 	return statement()
 
@@ -26,6 +27,7 @@ func statement() -> Stmt:
 	if isMatch(Token.TokenType.FOR): return forStatement()
 	if isMatch(Token.TokenType.IF): return ifStatement()
 	if isMatch(Token.TokenType.PRINT): return printStatement()
+	if isMatch(Token.TokenType.RETURN): return returnStatement()
 	if isMatch(Token.TokenType.WHILE): return whileStatement()
 	if isMatch(Token.TokenType.LEFT_BRACE): return Block.create(block())
 	return expressionStatement()
@@ -91,6 +93,32 @@ func printStatement() -> Stmt:
 	# consume(Token.TokenType.SEMICOLON, "Expected ';' after value")
 	return Print.create(value)
 
+func returnStatement() -> Stmt:
+	var keyword = previous()
+	var value: Expr = null
+
+	# Lox Sintax with ';'
+	# if !check(Token.TokenType.SEMICOLON):
+	# 	value = expression()
+	# consume(Token.TokenType.SEMICOLON, "Expected ';' after return value.")
+
+	# #My sintax, without ';'
+	# if !check(Token.TokenType.RIGHT_BRACE) and !isAtEnd():
+	# value = expression()
+	var next = peek().type
+	if next != Token.TokenType.RIGHT_BRACE and \
+	   next != Token.TokenType.PRINT and \
+	   next != Token.TokenType.VAR and \
+	   next != Token.TokenType.FOR and \
+	   next != Token.TokenType.WHILE and \
+	   next != Token.TokenType.IF and \
+	   next != Token.TokenType.FUNC and \
+	   next != Token.TokenType.RETURN and \
+	   next != Token.TokenType.EOF:
+		value = expression()
+
+	return Return.create(keyword, value)
+
 func varDeclaration() -> Stmt:
 	var name = consume(Token.TokenType.IDENTIFIER, "Expect variable name")
 	var initializer: Expr = null
@@ -113,6 +141,24 @@ func expressionStatement() -> Stmt:
 	var expr = expression()
 	# consume(Token.TokenType.SEMICOLON, "Expect ';' after the expression")
 	return LoxExpression.create(expr)
+
+func function(kind: String) -> Function:
+	var name: Token = consume(Token.TokenType.IDENTIFIER, "Expect %s name." % kind)
+	consume(Token.TokenType.LEFT_PAREN, "Expect '(' after %s name" % kind)
+	
+	var parameters: Array[Token]
+	if !check(Token.TokenType.RIGHT_PAREN):
+		while true:
+			if parameters.size() >= 255:
+				error(peek(), "Can't have more than 255 parameters")
+			parameters.append(consume(Token.TokenType.IDENTIFIER, "Expect parameter name."))
+			if !isMatch(Token.TokenType.COMMA):
+				break
+	
+	consume(Token.TokenType.RIGHT_PAREN, "Expected ')' after parameters.")
+	consume(Token.TokenType.LEFT_BRACE, "Expected '{' before %s body." % kind)
+	var body: Array[Stmt] = block()
+	return Function.create(name, parameters, body)
 
 func block() -> Array[Stmt]:
 	var statements: Array[Stmt]
@@ -203,7 +249,29 @@ func unary() -> Expr:
 		var right = unary()
 		return Unary.create(operator, right)
 	
-	return primary()
+	return loxCall()
+
+func finishCall(callee: Expr) -> Expr:
+	var arguments: Array[Expr]
+	if !check(Token.TokenType.RIGHT_PAREN):
+		while true: # This is a do-while way of doing it in GDScript
+			if arguments.size() >= 255:
+				error(peek(), "Cant't have more than 255 arguments.")
+			arguments.append(expression())
+			if !isMatch(Token.TokenType.COMMA): break
+	
+	var paren = consume(Token.TokenType.RIGHT_PAREN, "Expected ')' after arguments.")
+	return Call.create(callee, paren, arguments)
+
+func loxCall() -> Expr: # Godot already has a call method defined in Object
+	var expr = primary()
+
+	while (true):
+		if isMatch(Token.TokenType.LEFT_PAREN):
+			expr = finishCall(expr)
+		else:
+			break
+	return expr
 
 func primary() -> Expr:
 	# print_debug("primary() called, current token: ", peek().type, " ", peek().lexeme)

@@ -8,6 +8,7 @@ func _run() -> void:
 	defineAst("res://src/Core/Expresions/", "Expr", [
 		"Assign : Token name, Expr value",
 		"Binary   : Expr left, Token operator, Expr right",
+		"Call : Expr callee, Token paren, Array[Expr] arguments",
       	"Grouping : Expr expression",
       	"Literal  : Variant value",
 		"Logical : Expr left, Token operator, Expr right",
@@ -18,8 +19,10 @@ func _run() -> void:
 	defineAst("res://src/Core/Statements/", "Stmt", [
 		"Block : Array[Stmt] statements",
 		"LoxExpression : Expr expression", # Expression collides with a Godot class, LoxExpression used instead
+		"Function : Token name, Array[Token] params," + " Array[Stmt] body",
 		"If : Expr condition, Stmt thenBranch," + " Stmt elseBranch",
 		"Print : Expr expression",
+		"Return : Token keyword, Expr value",
 		"Var : Token name, Expr initializer",
 		"While : Expr condition, Stmt body",
 	])

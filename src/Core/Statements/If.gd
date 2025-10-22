@@ -1,5 +1,5 @@
-extends Stmt
-class_name If
+extends Stmt 
+class_name If 
 
 var condition: Expr
 var thenBranch: Stmt

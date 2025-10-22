@@ -2,7 +2,24 @@
 # Todo: Find another solution, ducktyping could be the option here
 class_name Interpreter extends ExprVisitor # , StmtVisitor
 
-var environment := LoxEnvironment.new()
+var globals := LoxEnvironment.new()
+var environment := globals
+
+#Testing here
+var return_value: Variant = null
+var has_returned: bool = false
+
+# implements LoxCallable to create a native function "clock"
+class ClockCallable extends LoxCallable:
+	func arity() -> int: return 0
+	func loxCall(interpreter: Interpreter, arguments: Array) -> Variant:
+		return Time.get_ticks_msec() / 1000.0
+	func _to_string() -> String:
+		return "<native fn>"
+	
+
+func _init() -> void:
+	globals.define("clock", ClockCallable.new())
 
 func interpret(statements: Array[Stmt]):
 	for stmt: Stmt in statements:
@@ -11,6 +28,11 @@ func interpret(statements: Array[Stmt]):
 
 func visitLoxExpressionStmt(stmt: LoxExpression):
 	evaluate(stmt.expression)
+
+func visitFunctionStmt(stmt: Function):
+	var function := LoxFunction.new(stmt, environment)
+	environment.define(stmt.name.lexeme, function)
+	return null
 
 func visitIfStmt(stmt: If):
 	if isTruthy(evaluate(stmt.condition)):
@@ -23,6 +45,21 @@ func visitIfStmt(stmt: If):
 func visitPrintStmt(stmt: Print):
 	var value = evaluate(stmt.expression)
 	print(stringify(value))
+
+# func visitReturnStmt(stmt: Return):
+# 	var value = null
+# 	if stmt.value != null:
+# 		value = evaluate(stmt.value)
+	
+# 	return ReturnValue.new(value)
+
+func visitReturnStmt(stmt: Return):
+	if stmt.value != null:
+		return_value = evaluate(stmt.value)
+	else:
+		return_value = null
+	has_returned = true
+	return null
 
 func visitVarStmt(stmt: Var):
 	var value = null
@@ -90,6 +127,24 @@ func visitBinaryExpr(expr: Binary) -> Variant:
 
 	return null
 
+func visitCallExpr(expr: Call):
+	var callee = evaluate(expr.callee)
+
+	var arguments: Array
+	for argument in expr.arguments:
+		arguments.append(evaluate(argument))
+
+	if callee is not LoxCallable:
+		var error = RuntimeError.new(expr.paren, "Can only call functions and classes.")
+		push_error(error.to_string())
+
+	var function: LoxCallable = callee
+	if arguments.size() != function.arity():
+		var error = RuntimeError.new(expr.paren, "Expected %d arguments but got %d." % [function.arity(), arguments.size()])
+		push_error(error.to_string())
+
+	return function.loxCall(self, arguments)
+
 func visitGroupingExpr(expr: Grouping) -> Variant:
 	return evaluate(expr.expression)
 
@@ -120,6 +175,7 @@ func visitUnaryExpr(expr: Unary) -> Variant:
 
 func visitVariableExpr(expr: Variable):
 	var value = environment.getValue(expr.name)
+
 	if value == null:
 		var error = RuntimeError.new(expr.name, "variable '%s' has not been initialized" % expr.name.lexeme)
 		push_error(error._to_string())
@@ -170,20 +226,36 @@ func evaluate(expr: Expr) -> Variant:
 func execute(stmt: Stmt):
 	stmt.accept(self) # Expects an ExpressionVisitor
 
+# func executeBlock(statements: Array[Stmt], environment: LoxEnvironment):
+# 	var previous = self.environment
+# 	self.environment = environment
+
+# 	for statement: Stmt in statements:
+# 		execute(statement)
+
+# 		# GDScript doesnt have a try/catch/finally like Java
+# 		# This line is not in the book, but is added here to break / exit the loop and -> 
+# 		if Lox.hadRuntimeError:
+# 			break
+
+# 	# -> restore the environment after the loop in case of runtimeError
+# 	self.environment = previous
+
 func executeBlock(statements: Array[Stmt], environment: LoxEnvironment):
 	var previous = self.environment
 	self.environment = environment
 
 	for statement: Stmt in statements:
 		execute(statement)
-
-		# GDScript doesnt have a try/catch/finally like Java
-		# This line is not in the book, but is added here to break / exit the loop and -> 
+		
+		if has_returned: # Check the flag
+			break
+		
 		if Lox.hadRuntimeError:
 			break
 
-	# -> restore the environment after the loop in case of runtimeError
 	self.environment = previous
+	has_returned = false # ← Reset flag after exiting block
 
 func visitBlockStmt(stmt: Block):
 	executeBlock(stmt.statements, LoxEnvironment.new(environment))
