@@ -4,6 +4,7 @@ class_name Interpreter extends ExprVisitor # , StmtVisitor
 
 var globals := LoxEnvironment.new()
 var environment := globals
+var locals: Dictionary[Expr, int]
 
 #Testing here
 var return_value: Variant = null
@@ -46,13 +47,6 @@ func visitPrintStmt(stmt: Print):
 	var value = evaluate(stmt.expression)
 	print(stringify(value))
 
-# func visitReturnStmt(stmt: Return):
-# 	var value = null
-# 	if stmt.value != null:
-# 		value = evaluate(stmt.value)
-	
-# 	return ReturnValue.new(value)
-
 func visitReturnStmt(stmt: Return):
 	if stmt.value != null:
 		return_value = evaluate(stmt.value)
@@ -77,7 +71,13 @@ func visitWhileStmt(stmt: While):
 
 func visitAssignExpr(expr: Assign):
 	var value = evaluate(expr.value)
-	environment.assign(expr.name, value)
+
+	var distance: int = locals.get(expr)
+	if distance != null:
+		environment.assignAt(distance, expr.name, value)
+	else:
+		environment.assign(expr.name, value)
+		
 	return value
 
 func visitBinaryExpr(expr: Binary) -> Variant:
@@ -174,13 +174,22 @@ func visitUnaryExpr(expr: Unary) -> Variant:
 	return null
 
 func visitVariableExpr(expr: Variable):
-	var value = environment.getValue(expr.name)
+	return lookUpVariable(expr.name, expr)
+	# var value = environment.getValue(expr.name)
 
-	if value == null:
-		var error = RuntimeError.new(expr.name, "variable '%s' has not been initialized" % expr.name.lexeme)
-		push_error(error._to_string())
-		# assert(false)
-	return value
+	# if value == null:
+	# 	var error = RuntimeError.new(expr.name, "variable '%s' has not been initialized" % expr.name.lexeme)
+	# 	push_error(error._to_string())
+	# 	# assert(false)
+	# return value
+
+func lookUpVariable(name: Token, expr: Expr) -> Variant:
+	var distance = locals.get(expr)
+	if distance != null:
+		return environment.getAt(distance, name.lexeme)
+	else:
+		return globals.getValue(name)
+
 
 func checkNumberOperand(operator: Token, operand: Variant):
 	if operand is float: return
@@ -225,6 +234,9 @@ func evaluate(expr: Expr) -> Variant:
 
 func execute(stmt: Stmt):
 	stmt.accept(self) # Expects an ExpressionVisitor
+
+func resolve(expr: Expr, depth: int):
+	locals.set(expr, depth)
 
 # func executeBlock(statements: Array[Stmt], environment: LoxEnvironment):
 # 	var previous = self.environment

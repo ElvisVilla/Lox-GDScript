@@ -67,6 +67,11 @@ static func run(source: String):
 
 	if hadError: return
 	
+	var resolver := Resolver.new(interpreter)
+	resolver.resolve(statements)
+
+	if hadError: return
+
 	interpreter.interpret(statements)
 	# var transpiler = GDScriptTranspiler.new()
 	# var gdCode = transpiler.transpile(statements)

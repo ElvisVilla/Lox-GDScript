@@ -33,3 +33,16 @@ func assign(name: Token, value):
 	
 func define(name: StringName, value: Variant) -> void:
 	values.set(name, value)
+
+func ancestor(distance: int) -> LoxEnvironment:
+	var environment = self
+	for i in distance:
+		environment = environment.enclosing
+	
+	return environment
+
+func getAt(distance: int, name: String):
+	return ancestor(distance).values.get(name)
+
+func assignAt(distance: int, name: Token, value: Variant):
+	ancestor(distance).values.set(name.lexeme, value)

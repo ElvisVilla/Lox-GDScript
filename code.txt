@@ -7,17 +7,28 @@
 //   print fib(i)
 // }
 
+// func makeCounter() {
+//   var i = 0
+//   func count() {
+// 	i = i + 1
+// 	print i
+//   }
 
-func makeCounter() {
-  var i = 0
-  func count() {
-	i = i + 1
-	print i
+//   return count
+// }
+
+// var counter = makeCounter()
+// counter() // "1".
+// counter() // "2".
+
+
+var a = "global"
+{
+  func showA() {
+	print a	
   }
 
-  return count
+  showA()
+  var a = "block"
+  showA()
 }
-
-var counter = makeCounter()
-counter() // "1".
-counter() // "2".
