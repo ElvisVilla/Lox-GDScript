@@ -1,14 +1,22 @@
 extends ExprVisitor
 class_name Resolver
 
+enum ClassType {
+	NONE,
+	CLASS
+}
+
 enum FunctionType {
 	NONE,
 	FUNCTION,
+	INITIALIZER,
+	METHOD
 }
 
 var interpreter: Interpreter
 var scopes: Array = []
 var currentFunction: FunctionType = FunctionType.NONE
+var currentClass: ClassType = ClassType.NONE
 
 func _init(interpreter: Interpreter) -> void:
 	self.interpreter = interpreter
@@ -36,6 +44,27 @@ func visitBlockStmt(stmt: Block):
 	beginScope()
 	resolve(stmt.statements)
 	endScope()
+	return null
+
+func visitClassStmt(stmt: Class):
+	var enclosingClass := currentClass
+	currentClass = ClassType.CLASS
+
+	declare(stmt.name)
+	define(stmt.name)
+
+	beginScope()
+	scopes[scopes.size() - 1]["self"] = true
+
+	for method: Function in stmt.methods:
+		var declaration := FunctionType.METHOD
+		if method.name.lexeme == "init":
+			declaration = FunctionType.INITIALIZER
+		resolveFunction(method, declaration)
+
+	endScope()
+
+	currentClass = enclosingClass
 	return null
 
 func visitVarStmt(stmt: Var):
@@ -73,9 +102,12 @@ func visitWhileStmt(stmt: While):
 
 func visitReturnStmt(stmt: Return):
 	if currentFunction == FunctionType.NONE:
-		Lox.error(stmt.keyword.line, "Cant't return from top-level code.")
+		Lox.errorWith(stmt.keyword, "Cant't return from top-level code.")
 
 	if stmt.value != null:
+		if currentFunction == FunctionType.INITIALIZER:
+			Lox.errorWith(stmt.keyword,
+			"Can't return a value from anitializer")
 		exprResolve(stmt.value)
 	return null
 
@@ -99,6 +131,10 @@ func visitCallExpr(expr: Call):
 		exprResolve(arg)
 	return null
 
+func visitGetExpr(expr: Get):
+	exprResolve(expr.object)
+	return null
+
 func visitGroupingExpr(expr: Grouping):
 	exprResolve(expr.expression)
 	return null
@@ -109,6 +145,18 @@ func visitLiteralExpr(expr: Literal):
 func visitLogicalExpr(expr: Logical):
 	exprResolve(expr.left)
 	exprResolve(expr.right)
+	return null
+
+func visitSetExpr(expr: Set):
+	exprResolve(expr.value)
+	exprResolve(expr.object)
+	return null
+
+func visitSelfExpr(expr: Self):
+	if currentClass == ClassType.NONE:
+		Lox.errorWith(expr.keyword, "can't use 'self' outside of a class.")
+
+	resolveLocal(expr, expr.keyword)
 	return null
 
 func visitUnaryExpr(expr: Unary):

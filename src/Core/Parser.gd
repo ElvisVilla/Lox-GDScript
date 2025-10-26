@@ -19,9 +19,21 @@ func expression() -> Expr:
 	return assignment()
 
 func declaration() -> Stmt:
+	if isMatch(Token.TokenType.CLASS): return classDeclaration()
 	if isMatch(Token.TokenType.FUNC): return function("function")
 	if isMatch(Token.TokenType.VAR): return varDeclaration()
 	return statement()
+
+func classDeclaration() -> Stmt:
+	var name = consume(Token.TokenType.IDENTIFIER, "Expect class name.")
+	consume(Token.TokenType.LEFT_BRACE, "Expect '{' before class body.")
+
+	var methods: Array[Function]
+	while !check(Token.TokenType.RIGHT_BRACE) and !isAtEnd():
+		methods.append(function("method"))
+
+	consume(Token.TokenType.RIGHT_BRACE, "Expect '}' after class body.")
+	return Class.create(name, methods)
 
 func statement() -> Stmt:
 	if isMatch(Token.TokenType.FOR): return forStatement()
@@ -178,6 +190,9 @@ func assignment() -> Expr:
 		if expr is Variable:
 			var name = expr.name
 			return Assign.create(name, value)
+		elif expr is Get:
+			return Set.create(expr.object, expr.name, value)
+
 
 		error(equals, "Invalid assignment target.")
 
@@ -269,6 +284,10 @@ func loxCall() -> Expr: # Godot already has a call method defined in Object
 	while (true):
 		if isMatch(Token.TokenType.LEFT_PAREN):
 			expr = finishCall(expr)
+		elif isMatch(Token.TokenType.DOT):
+			var name: Token = consume(Token.TokenType.IDENTIFIER,
+			"Expect property name after '.'.")
+			expr = Get.create(expr, name)
 		else:
 			break
 	return expr
@@ -281,6 +300,8 @@ func primary() -> Expr:
 
 	if isMatch(Token.TokenType.NUMBER, Token.TokenType.STRING):
 		return Literal.create(previous().literal)
+
+	if isMatch(Token.TokenType.SELF): return Self.create(previous())
 	
 	if isMatch(Token.TokenType.IDENTIFIER):
 		return Variable.create(previous())

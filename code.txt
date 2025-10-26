@@ -22,13 +22,60 @@
 // counter() // "2".
 
 
-var a = "global"
-{
-  func showA() {
-	print a	
-  }
+// var a = "global"
+// {
+//   func showA() {
+// 	print a	
+//   }
 
-  showA()
-  var a = "block"
-  showA()
+//   showA()
+//   var a = "block"
+//   showA()
+// }
+
+// class Bagel {}
+// var bagel = Bagel()
+// print bagel
+
+
+// class Box {}
+
+// fun notMethod(argument) {
+//   print "called function with " + argument
+// }
+
+// var box = Box()
+// box.function = notMethod
+// box.function("argument")
+
+
+// class Bacon {
+//   eat() {
+// 	  print "Crunch crunch crunch!"
+//   }
+// }
+
+// var bacon = Bacon()
+// bacon.eat()
+
+
+// class Cake {
+
+//   taste() {
+// 	var adjective = "delicious"
+// 	  print "The " + flavor + " cake is " + adjective + "!"
+//   }
+// }
+
+// var cake = Cake()
+// cake.flavor = "German chocolate"
+// cake.taste() // Prints "The German chocolate cake is delicious!".
+
+class Foo {
+  init() {
+	return "before"
+  }
 }
+
+var foo = Foo()
+print foo.init()

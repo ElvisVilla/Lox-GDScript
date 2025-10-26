@@ -21,7 +21,7 @@ static var keywords: Dictionary = {
 	"print": Token.TokenType.PRINT,
 	"return": Token.TokenType.RETURN,
 	"super": Token.TokenType.SUPER,
-	"this": Token.TokenType.THIS,
+	"self": Token.TokenType.SELF,
 	"true": Token.TokenType.TRUE,
 	"var": Token.TokenType.VAR,
 	"while": Token.TokenType.WHILE,

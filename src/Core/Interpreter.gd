@@ -31,7 +31,7 @@ func visitLoxExpressionStmt(stmt: LoxExpression):
 	evaluate(stmt.expression)
 
 func visitFunctionStmt(stmt: Function):
-	var function := LoxFunction.new(stmt, environment)
+	var function := LoxFunction.new(stmt, environment, false)
 	environment.define(stmt.name.lexeme, function)
 	return null
 
@@ -145,6 +145,15 @@ func visitCallExpr(expr: Call):
 
 	return function.loxCall(self, arguments)
 
+func visitGetExpr(expr: Get):
+	var object = evaluate(expr.object)
+	if object is LoxInstance:
+		return object.getValue(expr.name)
+
+	var error = RuntimeError.new(expr.name,
+	 "Only instances have properties.")
+	push_error(error.to_string())
+
 func visitGroupingExpr(expr: Grouping) -> Variant:
 	return evaluate(expr.expression)
 
@@ -161,6 +170,19 @@ func visitLogicalExpr(expr: Logical) -> Variant:
 
 	return evaluate(expr.right)
 
+func visitSetExpr(expr: Set):
+	var object = evaluate(expr.object)
+	if !object is LoxInstance:
+		var error = RuntimeError.new(expr.name, "Only instances have fields.")
+		push_error(error.to_string())
+	
+	var value = evaluate(expr.value)
+	object.setValue(expr.name, value)
+	return value
+
+func visitSelfExpr(expr: Self):
+	return lookUpVariable(expr.keyword, expr)
+
 func visitUnaryExpr(expr: Unary) -> Variant:
 	var right = evaluate(expr.right)
 
@@ -175,13 +197,6 @@ func visitUnaryExpr(expr: Unary) -> Variant:
 
 func visitVariableExpr(expr: Variable):
 	return lookUpVariable(expr.name, expr)
-	# var value = environment.getValue(expr.name)
-
-	# if value == null:
-	# 	var error = RuntimeError.new(expr.name, "variable '%s' has not been initialized" % expr.name.lexeme)
-	# 	push_error(error._to_string())
-	# 	# assert(false)
-	# return value
 
 func lookUpVariable(name: Token, expr: Expr) -> Variant:
 	var distance = locals.get(expr)
@@ -271,4 +286,20 @@ func executeBlock(statements: Array[Stmt], environment: LoxEnvironment):
 
 func visitBlockStmt(stmt: Block):
 	executeBlock(stmt.statements, LoxEnvironment.new(environment))
+	return null
+
+func visitClassStmt(stmt: Class):
+	environment.define(stmt.name.lexeme, null)
+
+	var methods: Dictionary
+	for method: Function in stmt.methods:
+		var function := LoxFunction.new(
+			method,
+			environment,
+			method.name.lexeme == "init" # set true if its init
+		)
+		methods.set(method.name.lexeme, function)
+
+	var klass = LoxClass.new(stmt.name.lexeme, methods)
+	environment.assign(stmt.name, klass)
 	return null

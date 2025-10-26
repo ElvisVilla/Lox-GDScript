@@ -9,15 +9,19 @@ func _run() -> void:
 		"Assign : Token name, Expr value",
 		"Binary   : Expr left, Token operator, Expr right",
 		"Call : Expr callee, Token paren, Array[Expr] arguments",
+		"Get : Expr object, Token name",
       	"Grouping : Expr expression",
       	"Literal  : Variant value",
 		"Logical : Expr left, Token operator, Expr right",
+		"Set : Expr object, Token name, Expr value",
+		"Self : Token keyword",
       	"Unary    : Token operator, Expr right",
 		"Variable: Token name",
 	])
 
 	defineAst("res://src/Core/Statements/", "Stmt", [
 		"Block : Array[Stmt] statements",
+		"Class : Token name, Array[Function] methods",
 		"LoxExpression : Expr expression", # Expression collides with a Godot class, LoxExpression used instead
 		"Function : Token name, Array[Token] params," + " Array[Stmt] body",
 		"If : Expr condition, Stmt thenBranch," + " Stmt elseBranch",
