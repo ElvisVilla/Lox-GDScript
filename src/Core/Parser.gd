@@ -34,12 +34,17 @@ func classDeclaration() -> Stmt:
 
 	consume(Token.TokenType.LEFT_BRACE, "Expect '{' before class body.")
 
+	var fields: Array[Field]
 	var methods: Array[Function]
+
 	while !check(Token.TokenType.RIGHT_BRACE) and !isAtEnd():
-		methods.append(function("method"))
+		if isMatch(Token.TokenType.VAR, Token.TokenType.CONST):
+			fields.append(field())
+		elif isMatch(Token.TokenType.FUNC):
+			methods.append(function("method"))
 
 	consume(Token.TokenType.RIGHT_BRACE, "Expect '}' after class body.")
-	return Class.create(name, superclass, methods)
+	return Class.create(name, superclass, fields, methods)
 
 func statement() -> Stmt:
 	if isMatch(Token.TokenType.FOR): return forStatement()
@@ -67,7 +72,6 @@ func forStatement() -> Stmt:
 		condition = expression()
 	
 	consume(Token.TokenType.SEMICOLON, "Expect ';' after loop condition.")
-	# print("After consuming semicolon, current token: ", peek().type, " ", peek().lexeme)
 
 	var increment: Expr = null
 	if !check(Token.TokenType.RIGHT_PAREN):
@@ -143,7 +147,6 @@ func varDeclaration() -> Stmt:
 	if isMatch(Token.TokenType.EQUAL):
 		initializer = expression()
 
-	# for Swift/GDScript sintax this needs to be commented 
 	#consume(Token.TokenType.SEMICOLON, "Expect ';' after variable declaration.")
 	return Var.create(name, initializer)
 
@@ -159,6 +162,37 @@ func expressionStatement() -> Stmt:
 	var expr = expression()
 	# consume(Token.TokenType.SEMICOLON, "Expect ';' after the expression")
 	return LoxExpression.create(expr)
+
+func field() -> Field:
+	var fieldName = consume(Token.TokenType.IDENTIFIER, "Expected field name")
+
+	# var typeHint = null
+	# if isMatch(Token.TokenType.COLON):
+		# typeHint = consume(Token.TokenType.IDENTIFIER, "Expect type after ':'")
+	
+	var initializer = null
+	if isMatch(Token.TokenType.EQUAL):
+		initializer = expression()
+
+	#getter/setters
+	# var getter = null
+	# var setter = null
+
+	# if isMatch(Token.TokenType.LEFT_BRACE):
+	# 	while !check(Token.TokenType.RIGHT_BRACE) and !isAtEnd():
+	# 		if isMatch(Token.TokenType.GET): # GET is still not in the Tokens
+	# 			consume(Token.TokenType.LEFT_BRACE, "Expect '{' after 'get'")
+	# 			getter = block()
+
+	# 		elif isMatch(Token.TokenType.SET): # Set is also not in the Tokens
+	# 			consume(Token.TokenType.RIGHT_PAREN, "Expect '(' after 'set'.")
+	# 			var param = consume(Token.TokenType.IDENTIFIER,
+	# 			"Expect parameter name") # This is newValue or value parameter for Set
+	# 			consume(Token.TokenType.LEFT_PAREN, "Expect ')' after parameter.")
+	# 			consume(Token.TokenType.LEFT_BRACE, "Expect '{' before 'set' body.")
+	# 			setter = block()
+		
+	return Field.create(fieldName, initializer)
 
 func function(kind: String) -> Function:
 	var name: Token = consume(Token.TokenType.IDENTIFIER, "Expect %s name." % kind)
@@ -236,8 +270,8 @@ func equality() -> Expr:
 
 func comparison() -> Expr:
 	var expr = term()
-	while (isMatch(Token.TokenType.GREATER, Token.TokenType.GREATER_EQUAL,
-	Token.TokenType.LESS, Token.TokenType.LESS_EQUAL)):
+	while isMatch(Token.TokenType.GREATER, Token.TokenType.GREATER_EQUAL,
+	Token.TokenType.LESS, Token.TokenType.LESS_EQUAL):
 		var operator = previous()
 		var right = term()
 		expr = Binary.create(expr, operator, right)
@@ -247,7 +281,7 @@ func comparison() -> Expr:
 func term() -> Expr:
 	var expr = factor()
 
-	while (isMatch(Token.TokenType.MINUS, Token.TokenType.PLUS)):
+	while isMatch(Token.TokenType.MINUS, Token.TokenType.PLUS):
 		var operator = previous()
 		var right = factor()
 		expr = Binary.create(expr, operator, right)
@@ -257,7 +291,7 @@ func term() -> Expr:
 func factor() -> Expr:
 	var expr = unary()
 
-	while (isMatch(Token.TokenType.SLASH, Token.TokenType.STAR)):
+	while isMatch(Token.TokenType.SLASH, Token.TokenType.STAR):
 		var operator = previous()
 		var right = unary()
 		expr = Binary.create(expr, operator, right)
@@ -284,10 +318,11 @@ func finishCall(callee: Expr) -> Expr:
 	var paren = consume(Token.TokenType.RIGHT_PAREN, "Expected ')' after arguments.")
 	return Call.create(callee, paren, arguments)
 
-func loxCall() -> Expr: # Godot already has a call method defined in Object
+# Godot already has a call method defined in Object
+func loxCall() -> Expr:
 	var expr = primary()
 
-	while (true):
+	while true:
 		if isMatch(Token.TokenType.LEFT_PAREN):
 			expr = finishCall(expr)
 		elif isMatch(Token.TokenType.DOT):

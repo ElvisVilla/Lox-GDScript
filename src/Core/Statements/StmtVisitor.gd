@@ -5,6 +5,7 @@ class_name StmtVisitor
 @abstract func visitBlockStmt(stmt: Block)
 @abstract func visitClassStmt(stmt: Class)
 @abstract func visitLoxExpressionStmt(stmt: LoxExpression)
+@abstract func visitFieldStmt(stmt: Field)
 @abstract func visitFunctionStmt(stmt: Function)
 @abstract func visitIfStmt(stmt: If)
 @abstract func visitPrintStmt(stmt: Print)

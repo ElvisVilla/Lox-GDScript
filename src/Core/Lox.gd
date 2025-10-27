@@ -13,7 +13,7 @@ static var hadRuntimeError: bool
 # func main(args: Array):
 static func main(args: String):
 	if args.length() > 1:
-		print("Usage: GDSwift [script_path]")
+		# print("Usage: GDSwift [script_path]")
 	# elif args.length() == 1: # TODO: How do we check for File?
 		run_file(args)
 	# else:

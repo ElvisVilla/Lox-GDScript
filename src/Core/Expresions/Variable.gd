@@ -1,5 +1,5 @@
-extends Expr 
-class_name Variable 
+extends Expr
+class_name Variable
 
 var name: Token
 

@@ -311,7 +311,11 @@ func visitClassStmt(stmt: Class):
 		)
 		methods.set(method.name.lexeme, function)
 
-	var klass = LoxClass.new(stmt.name.lexeme, superclass, methods)
+	var fields: Dictionary
+	for field in stmt.fields:
+		fields.set(field.name.lexeme, field)
+
+	var klass = LoxClass.new(stmt.name.lexeme, superclass, fields, methods)
 
 	if superclass != null:
 		environment = environment.enclosing

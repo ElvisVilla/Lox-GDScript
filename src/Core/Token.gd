@@ -29,9 +29,10 @@ enum TokenType {
 	#Literals
 	IDENTIFIER, STRING, NUMBER,
 
-	#Keywords: for GDscript I keep [FUNC, Self,]
+	#Keywords: for GDscript I keep [FUNC, Self,CONST]
 	AND, CLASS, ELSE, FALSE, FUNC, FOR, IF, NIL, OR,
-	PRINT, RETURN, SUPER, SELF, TRUE, VAR, WHILE,
+	PRINT, RETURN, SUPER, SELF, TRUE, VAR, CONST, WHILE,
+	SET, GET,
 
 	EOF
 

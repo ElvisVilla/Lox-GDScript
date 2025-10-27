@@ -22,8 +22,11 @@ func _run() -> void:
 
 	defineAst("res://src/Core/Statements/", "Stmt", [
 		"Block : Array[Stmt] statements",
-		"Class : Token name, Variable superclass, Array[Function] methods",
+		"Class : Token name, Variable superclass, Array[Field] fields, Array[Function] methods",
 		"LoxExpression : Expr expression", # Expression collides with a Godot class, LoxExpression used instead
+		# The full Field Statement:
+		#"Field : Token name, Token typeHint, Expr initializer, Stmt getter, Stmt Setter",
+		"Field : Token name, Expr initializer",
 		"Function : Token name, Array[Token] params, Array[Stmt] body",
 		"If : Expr condition, Stmt thenBranch," + " Stmt elseBranch",
 		"Print : Expr expression",

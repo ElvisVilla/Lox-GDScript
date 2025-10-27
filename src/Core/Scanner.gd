@@ -24,6 +24,9 @@ static var keywords: Dictionary = {
 	"self": Token.TokenType.SELF,
 	"true": Token.TokenType.TRUE,
 	"var": Token.TokenType.VAR,
+	"const": Token.TokenType.CONST, # Added for my own sintax
+	"get": Token.TokenType.GET, # Added for my own sintax
+	"set": Token.TokenType.SET, # Added for my own sintax
 	"while": Token.TokenType.WHILE,
 }
 

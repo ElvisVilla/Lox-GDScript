@@ -68,6 +68,13 @@ func visitClassStmt(stmt: Class):
 	beginScope()
 	scopes[scopes.size() - 1]["self"] = true
 
+	for field: Field in stmt.fields:
+		declare(field.name)
+		if field.initializer:
+			exprResolve(field.initializer)
+		
+		define(field.name)
+
 	for method: Function in stmt.methods:
 		var declaration := FunctionType.METHOD
 		if method.name.lexeme == "init":
@@ -145,8 +152,10 @@ func visitCallExpr(expr: Call):
 		exprResolve(arg)
 	return null
 
+
 func visitGetExpr(expr: Get):
 	exprResolve(expr.object)
+	# In the future fields and functions might require static checker here
 	return null
 
 func visitGroupingExpr(expr: Grouping):
