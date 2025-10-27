@@ -10,6 +10,7 @@ class_name ExprVisitor
 @abstract func visitLiteralExpr(expr: Literal)
 @abstract func visitLogicalExpr(expr: Logical)
 @abstract func visitSetExpr(expr: Set)
+@abstract func visitSuperExpr(expr: Super)
 @abstract func visitSelfExpr(expr: Self)
 @abstract func visitUnaryExpr(expr: Unary)
 @abstract func visitVariableExpr(expr: Variable)

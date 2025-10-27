@@ -3,13 +3,21 @@ class_name LoxClass
 
 var name: String
 var methods: Dictionary
+var superclass: LoxClass
 
-func _init(name: String, methods: Dictionary) -> void:
+func _init(name: String, superclass: LoxClass, methods: Dictionary) -> void:
     self.name = name
+    self.superclass = superclass
     self.methods = methods
 
 func findMethod(name: String) -> LoxFunction:
-    return methods.get(name)
+    if methods.has(name):
+        return methods.get(name)
+
+    if superclass != null:
+        return superclass.findMethod(name)
+
+    return null
 
 func loxCall(interpreter: Interpreter, arguments: Array) -> Variant:
     var instance := LoxInstance.new(self)

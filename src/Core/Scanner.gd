@@ -46,6 +46,7 @@ func isAtEnd() -> bool:
 func scanToken() -> void:
 	var c = advance()
 	match c:
+		':': addToken(Token.TokenType.COLON)
 		'(': addToken(Token.TokenType.LEFT_PAREN)
 		')': addToken(Token.TokenType.RIGHT_PAREN)
 		'{': addToken(Token.TokenType.LEFT_BRACE)

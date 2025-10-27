@@ -180,6 +180,19 @@ func visitSetExpr(expr: Set):
 	object.setValue(expr.name, value)
 	return value
 
+func visitSuperExpr(expr: Super):
+	var distance: int = locals.get(expr)
+	var superclass: LoxClass = environment.getAt(distance, "super")
+	var object: LoxInstance = environment.getAt(distance - 1, "this")
+	var method: LoxFunction = superclass.findMethod(expr.method.lexeme)
+
+	if method == null:
+		var error = RuntimeError.new(expr.method,
+		"Undefined property '" + expr.method.lexeme + "'.")
+		push_error(error.to_string())
+
+	return method.bind(object)
+
 func visitSelfExpr(expr: Self):
 	return lookUpVariable(expr.keyword, expr)
 
@@ -253,21 +266,6 @@ func execute(stmt: Stmt):
 func resolve(expr: Expr, depth: int):
 	locals.set(expr, depth)
 
-# func executeBlock(statements: Array[Stmt], environment: LoxEnvironment):
-# 	var previous = self.environment
-# 	self.environment = environment
-
-# 	for statement: Stmt in statements:
-# 		execute(statement)
-
-# 		# GDScript doesnt have a try/catch/finally like Java
-# 		# This line is not in the book, but is added here to break / exit the loop and -> 
-# 		if Lox.hadRuntimeError:
-# 			break
-
-# 	# -> restore the environment after the loop in case of runtimeError
-# 	self.environment = previous
-
 func executeBlock(statements: Array[Stmt], environment: LoxEnvironment):
 	var previous = self.environment
 	self.environment = environment
@@ -289,7 +287,20 @@ func visitBlockStmt(stmt: Block):
 	return null
 
 func visitClassStmt(stmt: Class):
+	var superclass = null
+	if stmt.superclass != null:
+		superclass = evaluate(stmt.superclass)
+		if !superclass is LoxClass:
+			var error = RuntimeError.new(stmt.superclass.name,
+			"Superclass must be a class.")
+			push_error(error)
+
+
 	environment.define(stmt.name.lexeme, null)
+
+	if stmt.superclass != null:
+		environment = LoxEnvironment.new(environment)
+		environment.define("super", superclass)
 
 	var methods: Dictionary
 	for method: Function in stmt.methods:
@@ -300,6 +311,10 @@ func visitClassStmt(stmt: Class):
 		)
 		methods.set(method.name.lexeme, function)
 
-	var klass = LoxClass.new(stmt.name.lexeme, methods)
+	var klass = LoxClass.new(stmt.name.lexeme, superclass, methods)
+
+	if superclass != null:
+		environment = environment.enclosing
+
 	environment.assign(stmt.name, klass)
 	return null

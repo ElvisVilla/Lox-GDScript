@@ -7,23 +7,24 @@ class_name GenerateAst
 func _run() -> void:
 	defineAst("res://src/Core/Expresions/", "Expr", [
 		"Assign : Token name, Expr value",
-		"Binary   : Expr left, Token operator, Expr right",
+		"Binary : Expr left, Token operator, Expr right",
 		"Call : Expr callee, Token paren, Array[Expr] arguments",
 		"Get : Expr object, Token name",
       	"Grouping : Expr expression",
       	"Literal  : Variant value",
 		"Logical : Expr left, Token operator, Expr right",
 		"Set : Expr object, Token name, Expr value",
+		"Super : Token keyword, Token method",
 		"Self : Token keyword",
-      	"Unary    : Token operator, Expr right",
+      	"Unary : Token operator, Expr right",
 		"Variable: Token name",
 	])
 
 	defineAst("res://src/Core/Statements/", "Stmt", [
 		"Block : Array[Stmt] statements",
-		"Class : Token name, Array[Function] methods",
+		"Class : Token name, Variable superclass, Array[Function] methods",
 		"LoxExpression : Expr expression", # Expression collides with a Godot class, LoxExpression used instead
-		"Function : Token name, Array[Token] params," + " Array[Stmt] body",
+		"Function : Token name, Array[Token] params, Array[Stmt] body",
 		"If : Expr condition, Stmt thenBranch," + " Stmt elseBranch",
 		"Print : Expr expression",
 		"Return : Token keyword, Expr value",

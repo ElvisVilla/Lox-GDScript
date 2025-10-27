@@ -3,7 +3,8 @@ class_name Resolver
 
 enum ClassType {
 	NONE,
-	CLASS
+	CLASS,
+	SUBCLASS
 }
 
 enum FunctionType {
@@ -53,6 +54,17 @@ func visitClassStmt(stmt: Class):
 	declare(stmt.name)
 	define(stmt.name)
 
+	if stmt.superclass != null and stmt.name.lexeme == stmt.superclass.name.lexeme:
+		Lox.errorWith(stmt.superclass.name, "A class can't inherit from itself.")
+
+	if stmt.superclass != null:
+		currentClass = ClassType.SUBCLASS
+		exprResolve(stmt.superclass)
+
+	if stmt.superclass != null:
+		beginScope()
+		scopes[scopes.size() - 1]["super"] = true
+
 	beginScope()
 	scopes[scopes.size() - 1]["self"] = true
 
@@ -63,6 +75,8 @@ func visitClassStmt(stmt: Class):
 		resolveFunction(method, declaration)
 
 	endScope()
+
+	if stmt.superclass != null: endScope()
 
 	currentClass = enclosingClass
 	return null
@@ -150,6 +164,16 @@ func visitLogicalExpr(expr: Logical):
 func visitSetExpr(expr: Set):
 	exprResolve(expr.value)
 	exprResolve(expr.object)
+	return null
+
+func visitSuperExpr(expr: Super):
+	if currentClass == ClassType.NONE:
+		Lox.errorWith(expr.keyword, "Can't use 'super' outside of a class.")
+	elif currentClass != ClassType.SUBCLASS:
+		Lox.errorWith(expr.keyword,
+		"Can't use 'super' in a class with not superclass.")
+
+	resolveLocal(expr, expr.keyword)
 	return null
 
 func visitSelfExpr(expr: Self):

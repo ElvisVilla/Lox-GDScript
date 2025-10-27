@@ -26,6 +26,12 @@ func declaration() -> Stmt:
 
 func classDeclaration() -> Stmt:
 	var name = consume(Token.TokenType.IDENTIFIER, "Expect class name.")
+
+	var superclass: Variable = null
+	if isMatch(Token.TokenType.COLON):
+		consume(Token.TokenType.IDENTIFIER, "Expect superclass name.")
+		superclass = Variable.create(previous())
+
 	consume(Token.TokenType.LEFT_BRACE, "Expect '{' before class body.")
 
 	var methods: Array[Function]
@@ -33,7 +39,7 @@ func classDeclaration() -> Stmt:
 		methods.append(function("method"))
 
 	consume(Token.TokenType.RIGHT_BRACE, "Expect '}' after class body.")
-	return Class.create(name, methods)
+	return Class.create(name, superclass, methods)
 
 func statement() -> Stmt:
 	if isMatch(Token.TokenType.FOR): return forStatement()
@@ -300,6 +306,12 @@ func primary() -> Expr:
 
 	if isMatch(Token.TokenType.NUMBER, Token.TokenType.STRING):
 		return Literal.create(previous().literal)
+
+	if isMatch(Token.TokenType.SUPER):
+		var keyword = previous()
+		consume(Token.TokenType.DOT, "Expect '.' after 'super'.")
+		var method = consume(Token.TokenType.IDENTIFIER, "Expect superclass method name.")
+		return Super.create(keyword, method)
 
 	if isMatch(Token.TokenType.SELF): return Self.create(previous())
 	
