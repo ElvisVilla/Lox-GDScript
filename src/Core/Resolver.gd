@@ -75,6 +75,40 @@ func visitClassStmt(stmt: Class):
 		
 		define(field.name)
 
+		# Resolve getter
+		if not field.getter.is_empty():
+			var enclosingFunction = currentFunction
+			currentFunction = FunctionType.METHOD
+			beginScope()
+			
+			# Make the field itself available in the getter
+			scopes[scopes.size() - 1][field.name.lexeme] = true
+			
+			# Resolve all statements in getter
+			resolve(field.getter)
+			
+			endScope()
+			currentFunction = enclosingFunction
+		
+		# Resolve setter
+		if not field.setter.is_empty():
+			var enclosingFunction = currentFunction
+			currentFunction = FunctionType.METHOD
+			beginScope()
+			
+			# Add setter parameter to scope
+			if field.valueParameter != null:
+				scopes[scopes.size() - 1][field.valueParameter.lexeme] = true
+			
+			# Make the field itself available in the setter
+			scopes[scopes.size() - 1][field.name.lexeme] = true
+			
+			# Resolve all statements in setter
+			resolve(field.setter)
+			
+			endScope()
+			currentFunction = enclosingFunction
+
 	for method: Function in stmt.methods:
 		var declaration := FunctionType.METHOD
 		if method.name.lexeme == "init":

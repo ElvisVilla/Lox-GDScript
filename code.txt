@@ -1,90 +1,29 @@
-// func fib(n) {
-//   if (n <= 1) { return n }
-//   return fib(n - 2) + fib(n - 1)
-// }
+class Weapon : Area2D {
 
-// for (var i = 0; i < 20; i = i + 1) {
-//   print fib(i)
-// }
+	var damage: int = 70
+	var rangeUnits: float = 150.0
+	var shouldStop: bool = false
 
-// func makeCounter() {
-//   var i = 0
-//   func count() {
-// 	i = i + 1
-// 	print i
-//   }
+	var calculateDamage : float = 200
 
-//   return count
-// }
-
-// var counter = makeCounter()
-// counter() // "1".
-// counter() // "2".
+	func init(_damage, _rangeUnits, _shouldStop) {
+		self.damage = _damage
+		self.rangeUnits = _rangeUnits
+		self.shouldStop = _shouldStop
+	}
 
 
-// var a = "global"
-// {
-//   func showA() {
-// 	print a	
-//   }
+	func attack() {
+		if damage < 100 or rangeUnits > 1 {
+			if damage < 100 or rangeUnits > 1 {
+				shouldStop = false
+			}
+		}
+		damage = 200
+		damage = 200
+	}
 
-//   showA()
-//   var a = "block"
-//   showA()
-// }
-
-// class Bagel {}
-// var bagel = Bagel()
-// print bagel
-
-
-// class Box {}
-
-// fun notMethod(argument) {
-//   print "called function with " + argument
-// }
-
-// var box = Box()
-// box.function = notMethod
-// box.function("argument")
-
-
-// class Bacon {
-//   eat() {
-// 	  print "Crunch crunch crunch!"
-//   }
-// }
-
-// var bacon = Bacon()
-// bacon.eat()
-
-
-// class Cake {
-
-//   taste() {
-// 	var adjective = "delicious"
-// 	  print "The " + flavor + " cake is " + adjective + "!"
-//   }
-// }
-
-// var cake = Cake()
-// cake.flavor = "German chocolate"
-// cake.taste() // Prints "The German chocolate cake is delicious!".
-
-
-
-
-
-
-
-class Doughnut {
-  var taste = "delicious"
-  func cook() {
-	  print("Fry until golden brown.")
-	  print(self.taste)
-  }
+	func stopAttackAnimation() {
+		shouldStop = true
+	}
 }
-
-var eclair = Doughnut()
-// print eclair.taste
-eclair.cook()

@@ -37,9 +37,11 @@ func visitFunctionStmt(stmt: Function):
 
 func visitIfStmt(stmt: If):
 	if isTruthy(evaluate(stmt.condition)):
-		execute(stmt.thenBranch)
+		for statement in stmt.thenBranch:
+			execute(statement)
 	elif stmt.elseBranch != null:
-		execute(stmt.elseBranch)
+		for statement in stmt.elseBranch:
+			execute(statement)
 	
 	return null
 
@@ -72,7 +74,7 @@ func visitWhileStmt(stmt: While):
 func visitAssignExpr(expr: Assign):
 	var value = evaluate(expr.value)
 
-	var distance: int = locals.get(expr)
+	var distance = locals.get(expr)
 	if distance != null:
 		environment.assignAt(distance, expr.name, value)
 	else:

@@ -106,9 +106,8 @@ func ifStatement() -> Stmt:
 	var elseBranch = null
 	if isMatch(Token.TokenType.ELSE):
 		elseBranch = statement()
-
+	
 	return If.create(condition, thenBranch, elseBranch)
-
 
 func printStatement() -> Stmt:
 	var value = expression()
@@ -166,33 +165,37 @@ func expressionStatement() -> Stmt:
 func field() -> Field:
 	var fieldName = consume(Token.TokenType.IDENTIFIER, "Expected field name")
 
-	# var typeHint = null
-	# if isMatch(Token.TokenType.COLON):
-		# typeHint = consume(Token.TokenType.IDENTIFIER, "Expect type after ':'")
+	var typeHint: Token = null
+	if isMatch(Token.TokenType.COLON):
+		typeHint = consume(Token.TokenType.IDENTIFIER, "Expect type after ':'")
 	
 	var initializer = null
 	if isMatch(Token.TokenType.EQUAL):
-		initializer = expression()
+		initializer = assignment()
 
 	#getter/setters
-	# var getter = null
-	# var setter = null
+	# Implicit return recives Expr or Block for block Stmt
+	var getter: Array[Stmt]
+	var setter: Array[Stmt]
+	var valueParam: Token
 
-	# if isMatch(Token.TokenType.LEFT_BRACE):
-	# 	while !check(Token.TokenType.RIGHT_BRACE) and !isAtEnd():
-	# 		if isMatch(Token.TokenType.GET): # GET is still not in the Tokens
-	# 			consume(Token.TokenType.LEFT_BRACE, "Expect '{' after 'get'")
-	# 			getter = block()
+	if isMatch(Token.TokenType.LEFT_BRACE):
+		while !check(Token.TokenType.RIGHT_BRACE) and !isAtEnd():
+			if isMatch(Token.TokenType.GET):
+				consume(Token.TokenType.LEFT_BRACE, "Expect '{' after 'get'")
+				getter = block()
 
-	# 		elif isMatch(Token.TokenType.SET): # Set is also not in the Tokens
-	# 			consume(Token.TokenType.RIGHT_PAREN, "Expect '(' after 'set'.")
-	# 			var param = consume(Token.TokenType.IDENTIFIER,
-	# 			"Expect parameter name") # This is newValue or value parameter for Set
-	# 			consume(Token.TokenType.LEFT_PAREN, "Expect ')' after parameter.")
-	# 			consume(Token.TokenType.LEFT_BRACE, "Expect '{' before 'set' body.")
-	# 			setter = block()
+			elif isMatch(Token.TokenType.SET):
+				consume(Token.TokenType.LEFT_PAREN, "Expect '(' after 'set'.")
+				valueParam = consume(Token.TokenType.IDENTIFIER,
+				"Expect parameter name") # This is newValue or value parameter for Set
+				consume(Token.TokenType.RIGHT_PAREN, "Expect ')' after parameter.")
+				consume(Token.TokenType.LEFT_BRACE, "Expect '{' before 'set' body.")
+				setter = block()
 		
-	return Field.create(fieldName, initializer)
+		consume(Token.TokenType.RIGHT_BRACE, "Expect '}' after getter/setter")
+		
+	return Field.create(fieldName, typeHint, initializer, getter, setter, valueParam)
 
 func function(kind: String) -> Function:
 	var name: Token = consume(Token.TokenType.IDENTIFIER, "Expect %s name." % kind)

@@ -65,19 +65,43 @@ static func run(source: String):
 	var parser = Parser.new(tokens)
 	var statements: Array[Stmt] = parser.parse()
 
-	if hadError: return
+	if hadError:
+		print(hadError)
 	
-	var resolver := Resolver.new(interpreter)
-	resolver.resolve(statements)
+	# #RESOLVER
+	# var resolver := Resolver.new(interpreter)
+	# resolver.resolve(statements)
 
-	if hadError: return
+	# if hadError: return
 
-	interpreter.interpret(statements)
+	# # INTERPRETER
+	# interpreter.interpret(statements)
+
 	# var transpiler = GDScriptTranspiler.new()
 	# var gdCode = transpiler.transpile(statements)
 	# print(gdCode)
+	var secondTranspiler = Transpiler.new()
+	var gdCode = secondTranspiler.transpile(statements)
+	print(gdCode)
+
+	var file = newFile("res://src/Core/Transpiler/", "Weapon")
+
+	file.store_string(gdCode)
+	file.close()
 
 	# print(ASTPrinter.new().print(expresion))
+
+static func newFile(outputDir: String, className: String) -> FileAccess:
+	var path = formatPath(outputDir, className)
+	var file = FileAccess.open(path, FileAccess.WRITE)
+
+	if file == null:
+		push_error("Failed to create file: " + path)
+	
+	return file
+
+static func formatPath(outputDir: String, className: String) -> String:
+	return "%s/%s.gd" % [outputDir, className] # Makes this "res://example/ExampleClass.gd"
 
 # For error reporting check other implementations of Lox
 # In the book he recomends to move this to "ErrorReport" that gets passed to the scanner
