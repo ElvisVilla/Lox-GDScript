@@ -2,7 +2,7 @@
 This project is a GDscript implementation of the Lox programing lenguage from "Crafting Interpreters" by Robert Nystrom.
 
 ## Motivation:
-This project tries to solve one mising flavor in GDScript and that is, the possibility of using braces { } instead of identation,
+This project tries to solve one mising flavor in GDScript, The possibility of using braces { } instead of identation,
 
 Other features that will come to GDBraces are:
 - Extension methods
