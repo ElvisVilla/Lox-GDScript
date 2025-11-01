@@ -62,32 +62,32 @@ static func run(source: String):
 	#for token in tokens:
 		#print(token)
 
+	# AST = Asbtract Sintax Tree
 	var parser = Parser.new(tokens)
 	var statements: Array[Stmt] = parser.parse()
 
 	if hadError:
-		print(hadError)
+		# print(hadError)
+		return
 	
 	# #RESOLVER
-	# var resolver := Resolver.new(interpreter)
-	# resolver.resolve(statements)
+	var resolver := Resolver.new(interpreter)
+	resolver.resolve(statements)
 
-	# if hadError: return
+	if hadError: return
 
 	# # INTERPRETER
-	# interpreter.interpret(statements)
+	interpreter.interpret(statements)
 
-	# var transpiler = GDScriptTranspiler.new()
-	# var gdCode = transpiler.transpile(statements)
+
+	# var secondTranspiler = Transpiler.new()
+	# var gdCode = secondTranspiler.transpile(statements)
 	# print(gdCode)
-	var secondTranspiler = Transpiler.new()
-	var gdCode = secondTranspiler.transpile(statements)
-	print(gdCode)
 
-	var file = newFile("res://src/Core/Transpiler/", "Weapon")
+	# var file = newFile("res://src/Core/Transpiler/", "Weapon")
 
-	file.store_string(gdCode)
-	file.close()
+	# file.store_string(gdCode)
+	# file.close()
 
 	# print(ASTPrinter.new().print(expresion))
 

@@ -18,17 +18,20 @@ func parse() -> Array[Stmt]:
 func expression() -> Expr:
 	return assignment()
 
+# The top Token we can find is considered a declaration [Class | function | Variable]
 func declaration() -> Stmt:
 	if isMatch(Token.TokenType.CLASS): return classDeclaration()
 	if isMatch(Token.TokenType.FUNC): return function("function")
 	if isMatch(Token.TokenType.VAR): return varDeclaration()
 	return statement()
 
+# structure the class Stmt as the main Node of this Stmt, will hold inside
+# variables, methods, properties, etc.
 func classDeclaration() -> Stmt:
 	var name = consume(Token.TokenType.IDENTIFIER, "Expect class name.")
 
 	var superclass: Variable = null
-	if isMatch(Token.TokenType.COLON):
+	if isMatch(Token.TokenType.COLON, Token.TokenType.EXTENDS):
 		consume(Token.TokenType.IDENTIFIER, "Expect superclass name.")
 		superclass = Variable.create(previous())
 
@@ -38,7 +41,9 @@ func classDeclaration() -> Stmt:
 	var methods: Array[Function]
 
 	while !check(Token.TokenType.RIGHT_BRACE) and !isAtEnd():
-		if isMatch(Token.TokenType.VAR, Token.TokenType.CONST):
+		# @, signal, var or const
+		if isMatch(Token.TokenType.AT, Token.TokenType.SIGNAL,
+			Token.TokenType.VAR, Token.TokenType.CONST):
 			fields.append(field())
 		elif isMatch(Token.TokenType.FUNC):
 			methods.append(function("method"))
@@ -163,6 +168,13 @@ func expressionStatement() -> Stmt:
 	return LoxExpression.create(expr)
 
 func field() -> Field:
+	# # is signal a field?
+	# var at: Token = null
+	# if previous().type == Token.TokenType.AT:
+	# 	at = previous()
+	# 	#var requireParen = #Here I need to check if this specific annotation requires
+	# 	# parameters
+	# 	consume(Token.TokenType.RIGHT_PAREN, "Expect '(' after annotation %s" % token.lexeme)
 	var fieldName = consume(Token.TokenType.IDENTIFIER, "Expected field name")
 
 	var typeHint: Token = null
@@ -201,12 +213,24 @@ func function(kind: String) -> Function:
 	var name: Token = consume(Token.TokenType.IDENTIFIER, "Expect %s name." % kind)
 	consume(Token.TokenType.LEFT_PAREN, "Expect '(' after %s name" % kind)
 	
-	var parameters: Array[Token]
+	var parameters: Array[Parameter]
+	# var parameters: Array[Token]
 	if !check(Token.TokenType.RIGHT_PAREN):
 		while true:
 			if parameters.size() >= 255:
 				error(peek(), "Can't have more than 255 parameters")
-			parameters.append(consume(Token.TokenType.IDENTIFIER, "Expect parameter name."))
+			
+			var paramName: Token = consume(Token.TokenType.IDENTIFIER, "Expect parameter name.")
+			var typeHint: Token
+			var initializer: Expr
+			if isMatch(Token.TokenType.COLON):
+				typeHint = consume(Token.TokenType.IDENTIFIER, "Expect parameter type")
+
+			if isMatch(Token.TokenType.EQUAL):
+				initializer = expression()
+
+			# parameters.append(consume(Token.TokenType.IDENTIFIER, "Expect parameter name."))
+			parameters.append(Parameter.new(paramName, typeHint, initializer))
 			if !isMatch(Token.TokenType.COMMA):
 				break
 	
@@ -365,6 +389,9 @@ func primary() -> Expr:
 	# print_debug("Yeap, here is the error with")
 	return error(peek(), "Expect expression.")
 
+## Recives and array of Tokens and 'check' if any of them match the current token,
+## advancing (Incrementing) current index as result, and returning bool if either of the Tokens Match
+## Otherwise returns false.
 func isMatch(...types: Array) -> bool:
 	for type in types:
 		if check(type):
@@ -373,29 +400,37 @@ func isMatch(...types: Array) -> bool:
 
 	return false
 
+## This function is used consume the next token, is the expected Token by the grammar rules, returns it.
+## otherwise set an error in the Lox Class.
 func consume(type: Token.TokenType, message: String) -> Token:
 	if check(type): return advance()
 	error(peek(), message)
-	synchronize() # to recover from errors
+	synchronize() # to recover from errors, Node: This needs to be study more in depth
 	return null
 
+## Return true if the current Token is the same type as the received by parameter
 func check(type: Token.TokenType) -> bool:
 	if isAtEnd(): return false
 	return peek().type == type
 
+## Increment the current index and return the previous Token
 func advance() -> Token:
 	if !isAtEnd(): current += 1
 	return previous()
 
+## Check if the the current Token is the end of the file
 func isAtEnd() -> bool:
 	return peek().type == Token.TokenType.EOF
 
+## Obtain the current token on the list of tokens using the current index
 func peek() -> Token:
 	return tokens[current]
 
+## Return the previous processed Token, code:    return tokens[current -1]
 func previous() -> Token:
 	return tokens[current - 1]
 
+## Set Lox.hadError as true and print the error in the console
 func error(token: Token, message: String) -> Expr:
 	Lox.errorWith(token, message)
 	return null
@@ -403,6 +438,7 @@ func error(token: Token, message: String) -> Expr:
 func synchronize():
 	advance()
 	while (!isAtEnd()):
+		#Note: This needs to be evaluated, GDBraces don't use ';' to terminate statements
 		if previous().type == Token.TokenType.SEMICOLON: return
 
 		match peek().type:

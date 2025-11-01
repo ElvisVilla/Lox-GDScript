@@ -1,29 +1,30 @@
-class Weapon : Area2D {
+class Weapon {
 
-	var damage: int = 70
-	var rangeUnits: float = 150.0
-	var shouldStop: bool = false
-
-	var calculateDamage : float = 200
-
-	func init(_damage, _rangeUnits, _shouldStop) {
-		self.damage = _damage
-		self.rangeUnits = _rangeUnits
-		self.shouldStop = _shouldStop
+	var price: int = 200
+	var durability: int = 32
+	
+	func init(price: int, durability: int) {
+		self.price = price
+		self.durability = durability
 	}
-
-
-	func attack() {
-		if damage < 100 or rangeUnits > 1 {
-			if damage < 100 or rangeUnits > 1 {
-				shouldStop = false
-			}
+	
+	func showMessage(message, age: int = 30) {
+		var index = 0
+		while(index < 10000) {
+			print(message + " with age: " + age + "Current Index: " + index)
+			index = index + 1
 		}
-		damage = 200
-		damage = 200
-	}
-
-	func stopAttackAnimation() {
-		shouldStop = true
 	}
 }
+
+
+var weapon = Weapon(500, 500)
+weapon.showMessage("My name is Elvis")
+
+// print(weapon.price)
+// print(weapon.durability)
+
+// weapon = Weapon(10, 10)
+// print(weapon.price)
+// print(weapon.durability)
+// weapon.showMessage()

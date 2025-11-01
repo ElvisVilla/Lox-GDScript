@@ -129,7 +129,15 @@ func transpileFunction(stmt: Function) -> String:
 	# Parameters
 	var params = []
 	for param in stmt.params:
-		var param_str = param.lexeme
+		var param_str: String = param.name.lexeme
+		
+		if param.typeHint != null:
+			param_str +=  ":" + param.typeHint.lexeme
+			
+		#var defaultValue: String
+		#if param.defaultValue != null:
+			
+			
 		# Add type hint if available (you'd need to track this)
 		params.append(param_str)
 	result += ", ".join(params) + ")"

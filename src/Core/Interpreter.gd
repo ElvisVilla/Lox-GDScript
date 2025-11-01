@@ -12,6 +12,7 @@ var has_returned: bool = false
 
 # implements LoxCallable to create a native function "clock"
 class ClockCallable extends LoxCallable:
+	func minArity() -> int: return arity()
 	func arity() -> int: return 0
 	func loxCall(interpreter: Interpreter, arguments: Array) -> Variant:
 		return Time.get_ticks_msec() / 1000.0
@@ -29,6 +30,11 @@ func interpret(statements: Array[Stmt]):
 
 func visitLoxExpressionStmt(stmt: LoxExpression):
 	evaluate(stmt.expression)
+
+# Missing visits i want to be on pair with the Parser:
+	# fields support on classes now has get, set blocks
+	# signals 
+	# what else?
 
 func visitFunctionStmt(stmt: Function):
 	var function := LoxFunction.new(stmt, environment, false)
@@ -141,9 +147,17 @@ func visitCallExpr(expr: Call):
 		push_error(error.to_string())
 
 	var function: LoxCallable = callee
-	if arguments.size() != function.arity():
-		var error = RuntimeError.new(expr.paren, "Expected %d arguments but got %d." % [function.arity(), arguments.size()])
+
+	# This is currently being tested
+	if arguments.size() < function.minArity():
+		var error = RuntimeError.new(expr.paren, "Expected at least %d arguments but got %d." % [function.minArity(), arguments.size()])
 		push_error(error.to_string())
+		return null
+
+	if arguments.size() > function.arity():
+		var error = RuntimeError.new(expr.paren, "Expected at most %d arguments but got %d." % [function.arity(), arguments.size()])
+		push_error(error.to_string())
+		return null
 
 	return function.loxCall(self, arguments)
 

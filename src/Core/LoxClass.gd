@@ -43,6 +43,18 @@ func arity() -> int:
 	if initializer == null: return 0
 	return initializer.arity()
 
+func minArity() -> int:
+	var initializer := findMethod("init")
+	
+	if initializer == null:
+		return 0
+
+	var required = 0
+	for param in initializer.declaration.params:
+		if param.defaultValue == null:
+			required += 1
+	return required
+
 
 func _to_string() -> String:
 	return name

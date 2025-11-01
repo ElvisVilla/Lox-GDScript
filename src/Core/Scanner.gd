@@ -11,6 +11,8 @@ var line: int = 1
 static var keywords: Dictionary = {
 	"and": Token.TokenType.AND,
 	"class": Token.TokenType.CLASS,
+	"classname": Token.TokenType.CLASS_NAME,
+	"extends": Token.TokenType.EXTENDS,
 	"else": Token.TokenType.ELSE,
 	"false": Token.TokenType.FALSE,
 	"for": Token.TokenType.FOR,
@@ -20,14 +22,18 @@ static var keywords: Dictionary = {
 	"or": Token.TokenType.OR,
 	"print": Token.TokenType.PRINT,
 	"return": Token.TokenType.RETURN,
+	"await": Token.TokenType.AWAIT,
 	"super": Token.TokenType.SUPER,
 	"self": Token.TokenType.SELF,
 	"true": Token.TokenType.TRUE,
+	"@": Token.TokenType.AT,
 	"var": Token.TokenType.VAR,
+	"signal": Token.TokenType.SIGNAL,
 	"const": Token.TokenType.CONST, # Added for my own sintax
 	"get": Token.TokenType.GET, # Added for my own sintax
 	"set": Token.TokenType.SET, # Added for my own sintax
 	"while": Token.TokenType.WHILE,
+	"break": Token.TokenType.BREAK,
 }
 
 

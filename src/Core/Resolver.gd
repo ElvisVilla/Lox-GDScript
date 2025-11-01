@@ -270,9 +270,9 @@ func resolveFunction(function: Function, type: FunctionType):
 	var enclosingFunction: FunctionType = currentFunction
 	currentFunction = type
 	beginScope()
-	for param: Token in function.params:
-		declare(param)
-		define(param)
+	for param: Parameter in function.params:
+		declare(param.name)
+		define(param.name)
 	# Resolve the function body (array of statements)
 	resolve(function.body)
 	endScope()
