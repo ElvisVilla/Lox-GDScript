@@ -25,8 +25,9 @@ func _run() -> void:
 		"Class : Token name, Variable superclass, Array[Field] fields, Array[Function] methods",
 		"LoxExpression : Expr expression", # Expression collides with a Godot class, LoxExpression used instead
 		# The full Field Statement: getter could be Expr implicit return or Stmt(Block)
+		# "Signal : Token name, Array[Token] params",
 		"Field : Token name, Token typeHint, Expr initializer, Array[Stmt] getter, Array[Stmt] setter, Token valueParameter",
-		"Function : Token name, Array[Parameter] params, Array[Stmt] body",
+		"Function : Token name, Array[Parameter] params, Token returnType ,Array[Stmt] body",
 		"If : Expr condition, Stmt thenBranch, Stmt elseBranch",
 		"Print : Expr expression",
 		"Return : Token keyword, Expr value",

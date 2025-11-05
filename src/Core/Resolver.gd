@@ -22,15 +22,16 @@ var currentClass: ClassType = ClassType.NONE
 func _init(interpreter: Interpreter) -> void:
 	self.interpreter = interpreter
 
+## resolve an array of statements
 func resolve(statements: Array[Stmt]):
 	for stmt: Stmt in statements:
 		stmtResolve(stmt)
 
-# overload: resolve single stmt
+## overload: resolve single stmt
 func stmtResolve(stmt: Stmt):
 	stmt.accept(self)
 
-# overload: resolve single expr
+## overload: resolve single expr
 func exprResolve(expr: Expr):
 	expr.accept(self)
 
@@ -261,8 +262,7 @@ func resolveLocal(expr: Expr, name):
 		var scope: Dictionary = scopes[i]
 		if scope.has(name.lexeme):
 			var depth: int = scopes.size() - 1 - i
-			# Tell the interpreter how many scopes out this variable was found at
-			# (Interpreter must implement resolve(expr, depth))
+			# Tells how many scopes out this variable was found at
 			interpreter.resolve(expr, depth)
 			return
 

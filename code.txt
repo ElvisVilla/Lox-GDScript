@@ -1,30 +1,38 @@
-class Weapon {
+class Arco : Weapon { }
+class Haxe : Weapon { }
 
-	var price: int = 200
-	var durability: int = 32
-	
-	func init(price: int, durability: int) {
-		self.price = price
-		self.durability = durability
+class Weapon : Node2D {
+	// Variant
+	var number = 10 
+
+	// Inferred types
+	var name: "Bonehart"
+	var speed: 3.0 
+	var price: 300 
+
+	// Type hint
+	var buff : float = 1.0
+	var baseDamage: int = 47
+	var durability: float = 1.0
+
+	// property
+	var sellPrice: int {
+		return price * durability
+	}
+
+	var sprite: Sprite2D(self)
+	var area: Area2D(self)
+	var collision: CollisionShape2D(self)
+
+	func printName() {
+		print(name)
 	}
 	
-	func showMessage(message, age: int = 30) {
-		var index = 0
-		while(index < 10000) {
-			print(message + " with age: " + age + "Current Index: " + index)
-			index = index + 1
-		}
+	func damage() int {
+		return baseDamage * buff
 	}
 }
 
-
-var weapon = Weapon(500, 500)
-weapon.showMessage("My name is Elvis")
-
-// print(weapon.price)
-// print(weapon.durability)
-
-// weapon = Weapon(10, 10)
-// print(weapon.price)
-// print(weapon.durability)
-// weapon.showMessage()
+var weapon = Weapon()
+weapon.showMessage()
+print(weapon.arco + " is what will last in this weapon")

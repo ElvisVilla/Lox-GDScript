@@ -43,10 +43,10 @@ func visitFunctionStmt(stmt: Function):
 
 func visitIfStmt(stmt: If):
 	if isTruthy(evaluate(stmt.condition)):
-		for statement in stmt.thenBranch:
+		for statement in stmt.thenBranch.statements:
 			execute(statement)
 	elif stmt.elseBranch != null:
-		for statement in stmt.elseBranch:
+		for statement in stmt.elseBranch.statements:
 			execute(statement)
 	
 	return null

@@ -1,0 +1,36 @@
+
+# Cuales son los siguientes pasos?
+1- Completar la sintaxis (Lexer & Parser):
+- @anotaciones / @onready @export, @abstract, @etc
+- for i in items {
+	print()
+ }
+- if, callables, ternary operator, 
+- get, set,
+- value = value + 10, -=, *= /=,
+- Simbols && / || / |
+- enums
+- match
+- constat values
+
+2- Completar el Transpiler (Lo que nos da el codigo GDScript)
+
+3- Cambios en el editor / Editor Plugins:
+- Crear nueva extension .gdbraces
+- Definir donde y como se aplican los cambios en los archivos .gd
+	- Crear un build button para compilar el codigo?
+	- o compilar antes que el juego inicie?
+	- Archivos en Filesystem y archivos built-in (tanto para GDScript, como GDBraces)
+- Crear Sintax Highlighter para archivos con extension .gdbraces 
+
+4- Resolver / Symbols Table
+- Semantical Analysis en el editor (reporta errores)
+	- acceder a variables fuera del ambito
+	- poder usar Godot Types 
+
+5- LSP (Lenguage Server Protocol) hints al momento de programar
+- Habilita Hover tips
+- Go to Definition
+- Rename Symbols 
+- Code completion
+}

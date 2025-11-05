@@ -25,8 +25,8 @@ func declaration() -> Stmt:
 	if isMatch(Token.TokenType.VAR): return varDeclaration()
 	return statement()
 
-# structure the class Stmt as the main Node of this Stmt, will hold inside
-# variables, methods, properties, etc.
+## structure the class Stmt as the main Node of this Stmt, will hold inside
+## variables, methods, properties, etc.
 func classDeclaration() -> Stmt:
 	var name = consume(Token.TokenType.IDENTIFIER, "Expect class name.")
 
@@ -99,15 +99,9 @@ func forStatement() -> Stmt:
 	return body
 
 func ifStatement() -> Stmt:
-	# consume(Token.TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
 	var condition = expression()
-	# consume(Token.TokenType.RIGHT_PAREN, "Expect ')' after if condition.")
-
-	# Maybe to support Swift / Go style we could do this instead
-	consume(Token.TokenType.LEFT_BRACE, "Expect '{' after if condition.")
 
 	var thenBranch = statement()
-	consume(Token.TokenType.RIGHT_BRACE, "Expect '}' after if condition.")
 	var elseBranch = null
 	if isMatch(Token.TokenType.ELSE):
 		elseBranch = statement()
@@ -116,21 +110,12 @@ func ifStatement() -> Stmt:
 
 func printStatement() -> Stmt:
 	var value = expression()
-	# consume(Token.TokenType.SEMICOLON, "Expected ';' after value")
 	return Print.create(value)
 
 func returnStatement() -> Stmt:
 	var keyword = previous()
 	var value: Expr = null
 
-	# Lox Sintax with ';'
-	# if !check(Token.TokenType.SEMICOLON):
-	# 	value = expression()
-	# consume(Token.TokenType.SEMICOLON, "Expected ';' after return value.")
-
-	# #My sintax, without ';'
-	# if !check(Token.TokenType.RIGHT_BRACE) and !isAtEnd():
-	# value = expression()
 	var next = peek().type
 	if next != Token.TokenType.RIGHT_BRACE and \
 	   next != Token.TokenType.PRINT and \
@@ -145,6 +130,7 @@ func returnStatement() -> Stmt:
 
 	return Return.create(keyword, value)
 
+#TODO: Implement typeHint like on fields() declaration
 func varDeclaration() -> Stmt:
 	var name = consume(Token.TokenType.IDENTIFIER, "Expect variable name")
 	var initializer: Expr = null
@@ -155,9 +141,7 @@ func varDeclaration() -> Stmt:
 	return Var.create(name, initializer)
 
 func whileStatement() -> Stmt:
-	consume(Token.TokenType.LEFT_PAREN, "Expect '(' after 'while'.")
 	var condition = expression()
-	consume(Token.TokenType.RIGHT_PAREN, "Expect ')' after condition")
 	var body = statement()
 
 	return While.create(condition, body)
@@ -178,11 +162,28 @@ func field() -> Field:
 	var fieldName = consume(Token.TokenType.IDENTIFIER, "Expected field name")
 
 	var typeHint: Token = null
-	if isMatch(Token.TokenType.COLON):
-		typeHint = consume(Token.TokenType.IDENTIFIER, "Expect type after ':'")
-	
-	var initializer = null
-	if isMatch(Token.TokenType.EQUAL):
+	var initializer: Expr = null
+
+	# this condition looks for inferred types or explicit typed:
+	if isMatch(Token.TokenType.COLON): # var fieldName :    <---
+		typeHint = previous() # store ':' this means is an inferred type
+		if isMatch(Token.TokenType.EQUAL): # var fieldName :=      <---
+			initializer = assignment() # var fieldName := assignment()     <---
+		elif check(Token.TokenType.IDENTIFIER):
+			if peekNext().type == Token.TokenType.LEFT_PAREN: # var fieldName: Timer() or class instances
+				typeHint = previous()
+				initializer = assignment()
+			else:
+				typeHint = consume(Token.TokenType.IDENTIFIER, "Expect type after ':'") # var fieldName : Type
+
+				if isMatch(Token.TokenType.EQUAL): # var fieldName : typeHint =
+					initializer = assignment() # var fieldName : typeHint = assignment()
+
+
+		elif !check(Token.TokenType.IDENTIFIER): # var fieldName: value
+			initializer = assignment()
+
+	if isMatch(Token.TokenType.EQUAL) and initializer == null: # var fieldName := assignment()
 		initializer = assignment()
 
 	#getter/setters
@@ -214,7 +215,6 @@ func function(kind: String) -> Function:
 	consume(Token.TokenType.LEFT_PAREN, "Expect '(' after %s name" % kind)
 	
 	var parameters: Array[Parameter]
-	# var parameters: Array[Token]
 	if !check(Token.TokenType.RIGHT_PAREN):
 		while true:
 			if parameters.size() >= 255:
@@ -229,15 +229,24 @@ func function(kind: String) -> Function:
 			if isMatch(Token.TokenType.EQUAL):
 				initializer = expression()
 
-			# parameters.append(consume(Token.TokenType.IDENTIFIER, "Expect parameter name."))
 			parameters.append(Parameter.new(paramName, typeHint, initializer))
 			if !isMatch(Token.TokenType.COMMA):
 				break
 	
 	consume(Token.TokenType.RIGHT_PAREN, "Expected ')' after parameters.")
+
+	var returnType: Token = null
+	if isMatch(Token.TokenType.COLON):
+		returnType = consume(Token.TokenType.IDENTIFIER, "Expect return type.")
+	elif check(Token.TokenType.IDENTIFIER):
+		returnType = consume(Token.TokenType.IDENTIFIER, "Expect return type.")
+	elif check(Token.TokenType.ARROW):
+		error(peek(), "Expect ':' before return type or directly return type")
+		synchronize()
+	
 	consume(Token.TokenType.LEFT_BRACE, "Expected '{' before %s body." % kind)
 	var body: Array[Stmt] = block()
-	return Function.create(name, parameters, body)
+	return Function.create(name, parameters, returnType, body)
 
 func block() -> Array[Stmt]:
 	var statements: Array[Stmt]
@@ -336,7 +345,7 @@ func unary() -> Expr:
 func finishCall(callee: Expr) -> Expr:
 	var arguments: Array[Expr]
 	if !check(Token.TokenType.RIGHT_PAREN):
-		while true: # This is a do-while way of doing it in GDScript
+		while true:
 			if arguments.size() >= 255:
 				error(peek(), "Cant't have more than 255 arguments.")
 			arguments.append(expression())
@@ -361,7 +370,6 @@ func loxCall() -> Expr:
 	return expr
 
 func primary() -> Expr:
-	# print_debug("primary() called, current token: ", peek().type, " ", peek().lexeme)
 	if isMatch(Token.TokenType.FALSE): return Literal.create(false)
 	if isMatch(Token.TokenType.TRUE): return Literal.create(true)
 	if isMatch(Token.TokenType.NIL): return Literal.create(null)
@@ -425,6 +433,12 @@ func isAtEnd() -> bool:
 ## Obtain the current token on the list of tokens using the current index
 func peek() -> Token:
 	return tokens[current]
+
+## look ahead and returns the token, similar to do tokens[current + 1]
+func peekNext() -> Token:
+	if current + 1 >= tokens.size():
+		return tokens.back()
+	return tokens[current + 1]
 
 ## Return the previous processed Token, code:    return tokens[current -1]
 func previous() -> Token:

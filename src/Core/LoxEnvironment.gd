@@ -9,7 +9,6 @@ func _init(enclosing: LoxEnvironment = null) -> void:
 
 
 func getValue(name: Token) -> Variant:
-	# return values.get(name.lexeme)
 	if values.has(name.lexeme):
 		return values.get(name.lexeme)
 

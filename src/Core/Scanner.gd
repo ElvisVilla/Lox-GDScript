@@ -26,7 +26,6 @@ static var keywords: Dictionary = {
 	"super": Token.TokenType.SUPER,
 	"self": Token.TokenType.SELF,
 	"true": Token.TokenType.TRUE,
-	"@": Token.TokenType.AT,
 	"var": Token.TokenType.VAR,
 	"signal": Token.TokenType.SIGNAL,
 	"const": Token.TokenType.CONST, # Added for my own sintax
@@ -62,7 +61,12 @@ func scanToken() -> void:
 		'}': addToken(Token.TokenType.RIGHT_BRACE)
 		',': addToken(Token.TokenType.COMMA)
 		'.': addToken(Token.TokenType.DOT)
-		'-': addToken(Token.TokenType.MINUS)
+		'@': addToken(Token.TokenType.AT)
+		'-':
+			if isMatch('>'):
+				addToken(Token.TokenType.ARROW)
+			else:
+				addToken(Token.TokenType.MINUS)
 		'+': addToken(Token.TokenType.PLUS)
 		';': addToken(Token.TokenType.SEMICOLON)
 		'*': addToken(Token.TokenType.STAR)
@@ -107,8 +111,11 @@ func number():
 		advance()
 
 		while (isDigit(peek())): advance()
-
-	addToken(Token.TokenType.NUMBER, source.substr(start, current - start).to_float())
+	
+	var str_number = source.substr(start, current - start)
+	var value = str_number.to_int() if str_number.is_valid_int() else str_number.to_float()
+		
+	addToken(Token.TokenType.NUMBER, value)
 
 func string():
 	while (peek() != '"' and !isAtEnd()):

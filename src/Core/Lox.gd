@@ -70,7 +70,7 @@ static func run(source: String):
 		# print(hadError)
 		return
 	
-	# #RESOLVER
+	#RESOLVER
 	var resolver := Resolver.new(interpreter)
 	resolver.resolve(statements)
 
@@ -80,9 +80,9 @@ static func run(source: String):
 	interpreter.interpret(statements)
 
 
-	# var secondTranspiler = Transpiler.new()
-	# var gdCode = secondTranspiler.transpile(statements)
-	# print(gdCode)
+	var secondTranspiler = Transpiler.new()
+	var gdCode = secondTranspiler.transpile(statements)
+	print(gdCode)
 
 	# var file = newFile("res://src/Core/Transpiler/", "Weapon")
 
