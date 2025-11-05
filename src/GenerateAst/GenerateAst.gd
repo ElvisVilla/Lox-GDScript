@@ -31,7 +31,7 @@ func _run() -> void:
 		"If : Expr condition, Stmt thenBranch, Stmt elseBranch",
 		"Print : Expr expression",
 		"Return : Token keyword, Expr value",
-		"Var : Token name, Expr initializer",
+		"Var : Token name, Token typeHint, Expr initializer",
 		"While : Expr condition, Stmt body",
 	])
 

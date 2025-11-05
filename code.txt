@@ -1,38 +1,13 @@
-class Arco : Weapon { }
-class Haxe : Weapon { }
-
-class Weapon : Node2D {
+class Weapon {
 	// Variant
-	var number = 10 
-
-	// Inferred types
-	var name: "Bonehart"
-	var speed: 3.0 
-	var price: 300 
-
-	// Type hint
-	var buff : float = 1.0
-	var baseDamage: int = 47
-	var durability: float = 1.0
-
-	// property
-	var sellPrice: int {
-		return price * durability
-	}
-
-	var sprite: Sprite2D(self)
-	var area: Area2D(self)
-	var collision: CollisionShape2D(self)
+	var number: 10 
 
 	func printName() {
-		print(name)
-	}
-	
-	func damage() int {
-		return baseDamage * buff
+		var localVar: 32
+		print(localVar)
 	}
 }
 
-var weapon = Weapon()
-weapon.showMessage()
-print(weapon.arco + " is what will last in this weapon")
+var weapon : Weapon = Weapon()
+weapon.printName()
+print(weapon.number)

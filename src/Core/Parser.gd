@@ -133,12 +133,34 @@ func returnStatement() -> Stmt:
 #TODO: Implement typeHint like on fields() declaration
 func varDeclaration() -> Stmt:
 	var name = consume(Token.TokenType.IDENTIFIER, "Expect variable name")
-	var initializer: Expr = null
-	if isMatch(Token.TokenType.EQUAL):
-		initializer = expression()
 
-	#consume(Token.TokenType.SEMICOLON, "Expect ';' after variable declaration.")
-	return Var.create(name, initializer)
+	var typeHint: Token
+	var initializer: Expr = null
+	# if isMatch(Token.TokenType.EQUAL):
+	# 	initializer = expression()
+
+	if isMatch(Token.TokenType.COLON): # var fieldName :    <---
+		typeHint = previous() # store ':' this means is an inferred type
+		if isMatch(Token.TokenType.EQUAL): # var fieldName :=      <---
+			initializer = assignment() # var fieldName := assignment()     <---
+		elif check(Token.TokenType.IDENTIFIER):
+			if peekNext().type == Token.TokenType.LEFT_PAREN: # var fieldName: Timer() or class instances
+				typeHint = previous()
+				initializer = assignment()
+			else:
+				typeHint = consume(Token.TokenType.IDENTIFIER, "Expect type after ':'") # var fieldName : Type
+
+				if isMatch(Token.TokenType.EQUAL): # var fieldName : typeHint =
+					initializer = assignment() # var fieldName : typeHint = assignment()
+
+
+		elif !check(Token.TokenType.IDENTIFIER): # var fieldName: value
+			initializer = assignment()
+
+	if isMatch(Token.TokenType.EQUAL) and initializer == null: # var fieldName := assignment()
+		initializer = assignment()
+
+	return Var.create(name, typeHint, initializer)
 
 func whileStatement() -> Stmt:
 	var condition = expression()
@@ -164,7 +186,6 @@ func field() -> Field:
 	var typeHint: Token = null
 	var initializer: Expr = null
 
-	# this condition looks for inferred types or explicit typed:
 	if isMatch(Token.TokenType.COLON): # var fieldName :    <---
 		typeHint = previous() # store ':' this means is an inferred type
 		if isMatch(Token.TokenType.EQUAL): # var fieldName :=      <---
