@@ -1,9 +1,9 @@
-extends Stmt
-class_name If
+extends Stmt 
+class_name If 
 
 var condition: Expr
 var thenBranch: Stmt
-var elifBranch: Dictionary # [Expr, Stmt]
+var elifBranch: Dictionary
 var elseBranch: Stmt
 
 static func create(condition: Expr, thenBranch: Stmt, elifBranch: Dictionary, elseBranch: Stmt):

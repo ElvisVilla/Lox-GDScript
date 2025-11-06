@@ -144,6 +144,13 @@ func visitLoxExpressionStmt(stmt: LoxExpression):
 func visitIfStmt(stmt: If):
 	exprResolve(stmt.condition)
 	stmtResolve(stmt.thenBranch)
+
+	if !stmt.elifBranch.is_empty():
+		for condition in stmt.elifBranch:
+			exprResolve(condition)
+			var branch = stmt.elifBranch[condition]
+			stmtResolve(branch)
+
 	if stmt.elseBranch != null:
 		stmtResolve(stmt.elseBranch)
 	return null

@@ -146,8 +146,6 @@ func varDeclaration() -> Stmt:
 
 	var typeHint: Token
 	var initializer: Expr = null
-	# if isMatch(Token.TokenType.EQUAL):
-	# 	initializer = expression()
 
 	if isMatch(Token.TokenType.COLON): # var fieldName :    <---
 		typeHint = previous() # store ':' this means is an inferred type
