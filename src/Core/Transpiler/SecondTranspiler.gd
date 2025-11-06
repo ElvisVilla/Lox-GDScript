@@ -128,34 +128,62 @@ func transpileFunction(stmt: Function) -> String:
 	
 	# Parameters
 	var params = []
-	for param in stmt.params:
+	for param: Parameter in stmt.params:
 		var param_str: String = param.name.lexeme
 		
 		if param.typeHint != null:
-			param_str +=  ":" + param.typeHint.lexeme
+			param_str += ": " + param.typeHint.lexeme
 			
-		#var defaultValue: String
-		#if param.defaultValue != null:
-			
-			
-		# Add type hint if available (you'd need to track this)
+
+		if param.defaultValue != null:
+			param_str += " = " + transpileExpr(param.defaultValue)
+
 		params.append(param_str)
 	result += ", ".join(params) + ")"
 	
 	## Return type
-	#if stmt.returnType:
-		#result += " -> " + stmt.returnType.lexeme
+	if stmt.returnType:
+		result += " -> " + stmt.returnType.lexeme
+
+	# var returnValue = hasReturnValue(stmt.body)
+	# if returnValue: # &"NONE" was used to represent 'return' that doesnt return anything
+	# 	if stmt.returnType:
+	# 		result += " -> " + transpileExpr(returnValue.value)
+	# 	else:
+	# 		result += " -> void"
 	
 	result += ":\n"
 	
 	# Body
-	increaseIndent()
+	# increaseIndent()
 	for body_stmt in stmt.body:
 		result += getIndent() + transpileStmt(body_stmt).strip_edges() + "\n"
-	decreaseIndent()
+	# decreaseIndent()
 	
 	return result
 
+# func hasReturnValue(statements: Array) -> Variant:
+# 	for stmt: Stmt in statements:
+# 		if stmt is Return and stmt.value:
+# 			return stmt
+		
+# 		elif stmt is If:
+# 			if stmt.thenBranch != null:
+# 				var thenReturns = hasReturnValue(stmt.thenBranch.statements)
+# 				if thenReturns != null:
+# 					return thenReturns
+					
+# 			elif stmt.elseBranch != null:
+# 				var elseReturns = hasReturnValue(stmt.elseBranch.statements)
+# 				if elseReturns != null:
+# 					return elseReturns
+
+		
+# 		elif stmt is While:
+# 			return hasReturnValue(stmt.body.statements)
+		
+# 	return &"NONE"
+	
 func transpileFunctionAsMethod(stmt: Function) -> String:
 	# Same as transpileFunction but for methods inside classes
 	return transpileFunction(stmt)
@@ -164,8 +192,8 @@ func transpileVar(stmt: Var) -> String:
 	var result = "var " + stmt.name.lexeme
 	
 	# Type hint
-	if stmt.typeHint:
-		result += ": " + stmt.typeHint.lexeme
+	#if stmt.typeHint:
+		#result += ": " + stmt.typeHint.lexeme
 	
 	# Initializer
 	if stmt.initializer:
@@ -194,15 +222,22 @@ func transpileIf(stmt: If) -> String:
 		result += getIndent() + transpileStmt(stmt.thenBranch).strip_edges() + "\n"
 		decreaseIndent()
 	
+	if !stmt.elifBranch.is_empty(): # Dictionary[Expr, Stmt]
+		for condition in stmt.elifBranch:
+			result += getIndent() + "elif " + transpileExpr(condition) + ":\n"
+			var statements = stmt.elifBranch[condition]
+			if statements is Block:
+				result += transpileBlock(statements)
+			else:
+				result += getIndent() + transpileStmt(statements).strip_edges() + "\n"
+
 	# Else branch
 	if stmt.elseBranch:
 		result += getIndent() + "else:\n"
 
 		if stmt.elseBranch is Block:
-			print_debug("This is a block")
 			result += transpileBlock(stmt.elseBranch)
 		else:
-			print_debug("This is only one expresion i guess")
 			result += getIndent() + transpileStmt(stmt.elseBranch).strip_edges() + "\n"
 	
 	return result

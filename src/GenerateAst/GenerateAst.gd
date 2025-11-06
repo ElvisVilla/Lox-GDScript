@@ -28,7 +28,7 @@ func _run() -> void:
 		# "Signal : Token name, Array[Token] params",
 		"Field : Token name, Token typeHint, Expr initializer, Array[Stmt] getter, Array[Stmt] setter, Token valueParameter",
 		"Function : Token name, Array[Parameter] params, Token returnType ,Array[Stmt] body",
-		"If : Expr condition, Stmt thenBranch, Stmt elseBranch",
+		"If : Expr condition, Stmt thenBranch, Dictionary elifBranch, Stmt elseBranch",
 		"Print : Expr expression",
 		"Return : Token keyword, Expr value",
 		"Var : Token name, Token typeHint, Expr initializer",

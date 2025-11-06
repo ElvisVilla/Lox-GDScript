@@ -100,13 +100,23 @@ func forStatement() -> Stmt:
 
 func ifStatement() -> Stmt:
 	var condition = expression()
-
+	#consume(Token.TokenType.LEFT_BRACE, "Expect '{' after if condition")
 	var thenBranch = statement()
+
+	var elifBranches: Dictionary[Expr, Stmt]
+	while isMatch(Token.TokenType.ELIF):
+		var cond = expression()
+		#consume(Token.TokenType.LEFT_BRACE, "Expect '{' after elif condition")
+		var elif_block = statement()
+		elifBranches.set(cond, elif_block)
+
+
 	var elseBranch = null
 	if isMatch(Token.TokenType.ELSE):
+		#consume(Token.TokenType.LEFT_BRACE, "Expect '{' after else keyword")
 		elseBranch = statement()
 	
-	return If.create(condition, thenBranch, elseBranch)
+	return If.create(condition, thenBranch, elifBranches, elseBranch)
 
 func printStatement() -> Stmt:
 	var value = expression()

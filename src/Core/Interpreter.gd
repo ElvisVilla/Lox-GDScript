@@ -45,9 +45,20 @@ func visitIfStmt(stmt: If):
 	if isTruthy(evaluate(stmt.condition)):
 		for statement in stmt.thenBranch.statements:
 			execute(statement)
-	elif stmt.elseBranch != null:
+		return
+	
+	for condition in stmt.elifBranch:
+		if isTruthy(evaluate(condition)):
+			# condition is Expr, the key, the value is the Stmt
+			var statements = stmt.elifBranch[condition].statements
+			for statement in statements:
+				execute(statement)
+			return
+
+	if stmt.elseBranch != null:
 		for statement in stmt.elseBranch.statements:
 			execute(statement)
+		return
 	
 	return null
 
@@ -236,12 +247,12 @@ func lookUpVariable(name: Token, expr: Expr) -> Variant:
 
 
 func checkNumberOperand(operator: Token, operand: Variant):
-	if operand is float: return
+	if operand is float or operand is int: return
 	var error = RuntimeError.new(operator, "operand most be a number")
 	push_error(error.to_string()) # Possibly RuntimeError class is not necessary
 
 func checkNumberOperands(operator: Token, right: Variant, left: Variant):
-	if left is float and right is float: return
+	if left is float or left is int and right is float or right is int: return
 	var error = RuntimeError.new(operator, "operands most be a numbers")
 	push_error(error.to_string()) # Possibly RuntimeError class is not necessary
 

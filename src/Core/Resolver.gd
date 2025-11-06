@@ -18,6 +18,7 @@ var interpreter: Interpreter
 var scopes: Array = []
 var currentFunction: FunctionType = FunctionType.NONE
 var currentClass: ClassType = ClassType.NONE
+var currentFuncReturnType: Token
 
 func _init(interpreter: Interpreter) -> void:
 	self.interpreter = interpreter
@@ -164,7 +165,14 @@ func visitReturnStmt(stmt: Return):
 		if currentFunction == FunctionType.INITIALIZER:
 			Lox.errorWith(stmt.keyword,
 			"Can't return a value from anitializer")
+		if currentFuncReturnType != null and currentFuncReturnType.lexeme == "void":
+			Lox.errorWith(stmt.keyword,
+			"Can't return a value from a void function")
 		exprResolve(stmt.value)
+	# Is the return type valid or even exist?
+	elif currentFuncReturnType != null and currentFuncReturnType.lexeme != "void":
+		Lox.errorWith(stmt.keyword, "func expects return value with type '%s'." % currentFuncReturnType.lexeme)
+
 	return null
 
 # ------------- Expressions -------------
@@ -269,11 +277,15 @@ func resolveLocal(expr: Expr, name):
 func resolveFunction(function: Function, type: FunctionType):
 	var enclosingFunction: FunctionType = currentFunction
 	currentFunction = type
+	currentFuncReturnType = function.returnType
+
 	beginScope()
 	for param: Parameter in function.params:
 		declare(param.name)
 		define(param.name)
+
 	# Resolve the function body (array of statements)
 	resolve(function.body)
 	endScope()
 	currentFunction = enclosingFunction
+	currentFuncReturnType = null

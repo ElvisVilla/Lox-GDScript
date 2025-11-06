@@ -18,6 +18,7 @@ static var keywords: Dictionary = {
 	"for": Token.TokenType.FOR,
 	"func": Token.TokenType.FUNC,
 	"if": Token.TokenType.IF,
+	"elif": Token.TokenType.ELIF,
 	"nil": Token.TokenType.NIL,
 	"or": Token.TokenType.OR,
 	"print": Token.TokenType.PRINT,

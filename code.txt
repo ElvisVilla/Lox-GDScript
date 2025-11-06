@@ -1,13 +1,29 @@
 class Weapon {
-	// Variant
-	var number: 10 
 
-	func printName() {
-		var localVar: 32
-		print(localVar)
+	var number: int = 55
+
+	func printName(message: int, total: String) {
+		var localVar: int = 32
+
+		if localVar < 5 and localVar > 0 {
+			print("if")
+		} 
+		elif localVar > 5 and localVar < 10 {
+			print("Elif")
+			print("Elif")
+		} elif localVar > 5 and localVar < 10 {
+			print("Elif")
+			print("Elif")
+		} 
+		else {
+			print("else")
+		}
+	}
+
+	func getNumber() int {
+		return "Hello"
 	}
 }
 
-var weapon : Weapon = Weapon()
-weapon.printName()
-print(weapon.number)
+var weapon: Weapon()
+weapon.printName(1,"Hello")
