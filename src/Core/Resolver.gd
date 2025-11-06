@@ -163,6 +163,19 @@ func visitWhileStmt(stmt: While):
 	exprResolve(stmt.condition)
 	stmtResolve(stmt.body)
 	return null
+	
+func visitForStmt(stmt: For):
+	exprResolve(stmt.iterable)
+	
+	beginScope()
+	
+	declare(stmt.index)
+	define(stmt.index)
+	
+	stmtResolve(stmt.body)
+	
+	endScope()
+	return null
 
 func visitReturnStmt(stmt: Return):
 	if currentFunction == FunctionType.NONE:

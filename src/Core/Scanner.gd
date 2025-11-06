@@ -34,6 +34,7 @@ static var keywords: Dictionary = {
 	"set": Token.TokenType.SET, # Added for my own sintax
 	"while": Token.TokenType.WHILE,
 	"break": Token.TokenType.BREAK,
+	"in": Token.TokenType.IN,
 }
 
 

@@ -38,8 +38,8 @@ func transpileStmt(stmt: Stmt) -> String:
 		return transpileIf(stmt)
 	elif stmt is While:
 		return transpileWhile(stmt)
-	# elif stmt is FOR:
-	# 	return transpileFor(stmt)
+	elif stmt is For:
+		return transpileFor(stmt)
 	elif stmt is Return:
 		return transpileReturn(stmt)
 	elif stmt is LoxExpression:
@@ -255,32 +255,18 @@ func transpileWhile(stmt: While) -> String:
 	
 	return result
 
-# func transpileFor(stmt: For) -> String:
-# 	# For loops in your syntax need to be converted to GDScript for loops
-# 	# This is a basic implementation - you might need to adjust based on your for loop syntax
-# 	var result = ""
+func transpileFor(stmt: For) -> String:
+	# For loops in your syntax need to be converted to GDScript for loops
+	# This is a basic implementation - you might need to adjust based on your for loop syntax
+	var result = "for " + stmt.index.lexeme + " in " + transpileExpr(stmt.iterable) + ":\n"
 	
-# 	# If you have C-style for loops, convert to while loop
-# 	if stmt.initializer:
-# 		result += transpileStmt(stmt.initializer).strip_edges() + "\n"
+	# Body
+	if stmt.body is Block:
+		result += transpileBlock(stmt.body)
+	else:
+		result += getIndent() + transpileStmt(stmt.body).strip_edges() + "\n"
 	
-# 	result += getIndent() + "while " + transpileExpr(stmt.condition) + ":\n"
-	
-# 	indentLevel += 1
-	
-# 	# Body
-# 	if stmt.body is Block:
-# 		result += transpileBlock(stmt.body)
-# 	else:
-# 		result += getIndent() + transpileStmt(stmt.body).strip_edges() + "\n"
-	
-# 	# Increment
-# 	if stmt.increment:
-# 		result += getIndent() + transpileExpr(stmt.increment) + "\n"
-	
-# 	indentLevel -= 1
-	
-# 	return result
+	return result
 
 func transpileReturn(stmt: Return) -> String:
 	var result = "return"

@@ -19,6 +19,49 @@ class ClockCallable extends LoxCallable:
 	func _to_string() -> String:
 		return "<native fn>"
 	
+# In your built-in functions setup
+class RangeFunction extends LoxCallable:
+	func arity() -> int:
+		return -1 # Variable arity: 1, 2, or 3 arguments
+	func minArity() -> int:
+		return arity()
+
+	func loxCall(interpreter, arguments: Array):
+		var start = 0
+		var end = 0
+		var step = 1
+		
+		if arguments.size() == 1:
+			# range(10) -> 0 to 9
+			end = int(arguments[0])
+		elif arguments.size() == 2:
+			# range(5, 10) -> 5 to 9
+			start = int(arguments[0])
+			end = int(arguments[1])
+		elif arguments.size() == 3:
+			# range(0, 10, 2) -> 0, 2, 4, 6, 8
+			start = int(arguments[0])
+			end = int(arguments[1])
+			step = int(arguments[2])
+		else:
+			# Error
+			pass
+		
+		var result = []
+		var i = start
+		if step > 0:
+			while i < end:
+				result.append(i)
+				i += step
+		else:
+			while i > end:
+				result.append(i)
+				i += step
+		
+		return result
+
+	func _to_string() -> String:
+		return "<built-in fn range>"
 
 func _init() -> void:
 	globals.define("clock", ClockCallable.new())
@@ -47,7 +90,7 @@ func visitIfStmt(stmt: If):
 			execute(statement)
 		return
 	
-	for condition in stmt.elifBranch:
+	for condition: Expr in stmt.elifBranch:
 		if isTruthy(evaluate(condition)):
 			# condition is Expr, the key, the value is the Stmt
 			var statements = stmt.elifBranch[condition].statements
@@ -86,6 +129,35 @@ func visitWhileStmt(stmt: While):
 	while isTruthy(evaluate(stmt.condition)):
 		execute(stmt.body)
 
+	return null
+
+func visitForStmt(stmt: For):
+	var iterable = evaluate(stmt.iterable)
+
+	var items: Array
+
+	# create ranges
+	if iterable is int or iterable is float:
+		for i in iterable:
+			items.append(i)
+	elif iterable is Array:
+		items = iterable
+	elif iterable is Dictionary:
+		items = iterable.keys()
+	elif iterable is String:
+		for i in iterable:
+			items.append(i)
+	else:
+		var error = RuntimeError.new(stmt.name, "Can not iterate over" + iterable + " type")
+
+	var previousEnv = environment
+	environment = LoxEnvironment.new(previousEnv)
+
+	for item in items:
+		environment.define(stmt.index.lexeme, item)
+		execute(stmt.body)
+
+	environment = previousEnv
 	return null
 
 func visitAssignExpr(expr: Assign):

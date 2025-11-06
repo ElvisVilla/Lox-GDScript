@@ -57,46 +57,17 @@ func statement() -> Stmt:
 	if isMatch(Token.TokenType.PRINT): return printStatement()
 	if isMatch(Token.TokenType.RETURN): return returnStatement()
 	if isMatch(Token.TokenType.WHILE): return whileStatement()
+	if isMatch(Token.TokenType.FOR): return forStatement()
 	if isMatch(Token.TokenType.LEFT_BRACE): return Block.create(block())
 	return expressionStatement()
 
 func forStatement() -> Stmt:
-	consume(Token.TokenType.LEFT_PAREN, "Expect '(' after 'for'.")
+	var indexName = consume(Token.TokenType.IDENTIFIER, "Expect index identifier after 'for' keyword.")
+	consume(Token.TokenType.IN, "Expect 'in' keyword after index identifier.")
+	var iterable = expression()
+	var body = statement()
 
-	var initializer: Stmt = null
-	if isMatch(Token.TokenType.SEMICOLON):
-		initializer = null
-	elif isMatch(Token.TokenType.VAR):
-		initializer = varDeclaration()
-		consume(Token.TokenType.SEMICOLON, "Expect ';' after variable declaration.")
-	else:
-		initializer = expressionStatement()
-
-	var condition: Expr = null
-	if !check(Token.TokenType.SEMICOLON):
-		condition = expression()
-	
-	consume(Token.TokenType.SEMICOLON, "Expect ';' after loop condition.")
-
-	var increment: Expr = null
-	if !check(Token.TokenType.RIGHT_PAREN):
-		increment = expression()
-	
-	consume(Token.TokenType.RIGHT_PAREN, "Expect ')' after clauses.")
-	var body: Stmt = statement()
-
-	if increment != null:
-		body = Block.create([body, LoxExpression.create(increment)])
-
-	if condition == null:
-		condition = Literal.create(true)
-	
-	body = While.create(condition, body)
-
-	if initializer != null:
-		body = Block.create([initializer, body])
-
-	return body
+	return For.create(indexName, iterable, body)
 
 func ifStatement() -> Stmt:
 	var condition = expression()

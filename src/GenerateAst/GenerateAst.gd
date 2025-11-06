@@ -33,6 +33,7 @@ func _run() -> void:
 		"Return : Token keyword, Expr value",
 		"Var : Token name, Token typeHint, Expr initializer",
 		"While : Expr condition, Stmt body",
+		"For : Token index, Expr iterable, Stmt body",
 	])
 
 

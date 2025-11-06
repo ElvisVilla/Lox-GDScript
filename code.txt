@@ -3,18 +3,19 @@ class Weapon {
 	var number: int = 55
 
 	func printName(message: int, total: String) {
-		var localVar: int = 32
+		var localVar: 12
+		
+		for i in localVar {
+			print(i)
+		}
 
-		if localVar < 5 and localVar > 0 {
+		if localVar < 10 and localVar > 0 {
 			print("if")
 		} 
-		elif localVar > 5 and localVar < 10 {
+		elif localVar > 11 and localVar < 20 {
 			print("Elif")
 			print("Elif")
-		} elif localVar > 5 and localVar < 10 {
-			print("Elif")
-			print("Elif")
-		} 
+		}
 		else {
 			print("else")
 		}
