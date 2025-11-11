@@ -12,3 +12,4 @@ class_name StmtVisitor
 @abstract func visitReturnStmt(stmt: Return)
 @abstract func visitVarStmt(stmt: Var)
 @abstract func visitWhileStmt(stmt: While)
+@abstract func visitForStmt(stmt: For)

@@ -10,13 +10,13 @@ func _run() -> void:
 		"Binary : Expr left, Token operator, Expr right",
 		"Call : Expr callee, Token paren, Array[Expr] arguments",
 		"Get : Expr object, Token name",
-      	"Grouping : Expr expression",
-      	"Literal  : Variant value",
+	  	"Grouping : Expr expression",
+	  	"Literal  : Variant value",
 		"Logical : Expr left, Token operator, Expr right",
 		"Set : Expr object, Token name, Expr value",
 		"Super : Token keyword, Token method",
 		"Self : Token keyword",
-      	"Unary : Token operator, Expr right",
+	  	"Unary : Token operator, Expr right",
 		"Variable: Token name",
 	])
 
@@ -24,15 +24,16 @@ func _run() -> void:
 		"Block : Array[Stmt] statements",
 		"Class : Token name, Variable superclass, Array[Field] fields, Array[Function] methods",
 		"LoxExpression : Expr expression", # Expression collides with a Godot class, LoxExpression used instead
-		# The full Field Statement:
-		#"Field : Token name, Token typeHint, Expr initializer, Stmt getter, Stmt Setter",
-		"Field : Token name, Expr initializer",
-		"Function : Token name, Array[Token] params, Array[Stmt] body",
-		"If : Expr condition, Stmt thenBranch," + " Stmt elseBranch",
+		# The full Field Statement: getter could be Expr implicit return or Stmt(Block)
+		# "Signal : Token name, Array[Token] params",
+		"Field : Token name, Token typeHint, Expr initializer, Array[Stmt] getter, Array[Stmt] setter, Token valueParameter",
+		"Function : Token name, Array[Parameter] params, Token returnType ,Array[Stmt] body",
+		"If : Expr condition, Stmt thenBranch, Dictionary elifBranch, Stmt elseBranch",
 		"Print : Expr expression",
 		"Return : Token keyword, Expr value",
-		"Var : Token name, Expr initializer",
+		"Var : Token name, Token typeHint, Expr initializer",
 		"While : Expr condition, Stmt body",
+		"For : Token index, Expr iterable, Stmt body",
 	])
 
 
@@ -133,7 +134,6 @@ func defineVisitor(outputDir: String, baseName: String, types: Array[String]):
 	for type: String in types:
 		var typeName = type.split(":")[0].strip_edges()
 		code += "@abstract func visit%s%s(%s: %s)\n" % [typeName, baseName, baseName.to_lower(), typeName]
-		# code += "\tpass\n\n"
 
 	file.store_string(code)
 	file.close()

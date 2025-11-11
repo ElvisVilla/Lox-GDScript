@@ -12,12 +12,56 @@ var has_returned: bool = false
 
 # implements LoxCallable to create a native function "clock"
 class ClockCallable extends LoxCallable:
+	func minArity() -> int: return arity()
 	func arity() -> int: return 0
 	func loxCall(interpreter: Interpreter, arguments: Array) -> Variant:
 		return Time.get_ticks_msec() / 1000.0
 	func _to_string() -> String:
 		return "<native fn>"
 	
+# In your built-in functions setup
+class RangeFunction extends LoxCallable:
+	func arity() -> int:
+		return -1 # Variable arity: 1, 2, or 3 arguments
+	func minArity() -> int:
+		return arity()
+
+	func loxCall(interpreter, arguments: Array):
+		var start = 0
+		var end = 0
+		var step = 1
+		
+		if arguments.size() == 1:
+			# range(10) -> 0 to 9
+			end = int(arguments[0])
+		elif arguments.size() == 2:
+			# range(5, 10) -> 5 to 9
+			start = int(arguments[0])
+			end = int(arguments[1])
+		elif arguments.size() == 3:
+			# range(0, 10, 2) -> 0, 2, 4, 6, 8
+			start = int(arguments[0])
+			end = int(arguments[1])
+			step = int(arguments[2])
+		else:
+			# Error
+			pass
+		
+		var result = []
+		var i = start
+		if step > 0:
+			while i < end:
+				result.append(i)
+				i += step
+		else:
+			while i > end:
+				result.append(i)
+				i += step
+		
+		return result
+
+	func _to_string() -> String:
+		return "<built-in fn range>"
 
 func _init() -> void:
 	globals.define("clock", ClockCallable.new())
@@ -30,6 +74,11 @@ func interpret(statements: Array[Stmt]):
 func visitLoxExpressionStmt(stmt: LoxExpression):
 	evaluate(stmt.expression)
 
+# Missing visits i want to be on pair with the Parser:
+	# fields support on classes now has get, set blocks
+	# signals 
+	# what else?
+
 func visitFunctionStmt(stmt: Function):
 	var function := LoxFunction.new(stmt, environment, false)
 	environment.define(stmt.name.lexeme, function)
@@ -37,9 +86,22 @@ func visitFunctionStmt(stmt: Function):
 
 func visitIfStmt(stmt: If):
 	if isTruthy(evaluate(stmt.condition)):
-		execute(stmt.thenBranch)
-	elif stmt.elseBranch != null:
-		execute(stmt.elseBranch)
+		for statement in stmt.thenBranch.statements:
+			execute(statement)
+		return
+	
+	for condition: Expr in stmt.elifBranch:
+		if isTruthy(evaluate(condition)):
+			# condition is Expr, the key, the value is the Stmt
+			var statements = stmt.elifBranch[condition].statements
+			for statement in statements:
+				execute(statement)
+			return
+
+	if stmt.elseBranch != null:
+		for statement in stmt.elseBranch.statements:
+			execute(statement)
+		return
 	
 	return null
 
@@ -69,10 +131,39 @@ func visitWhileStmt(stmt: While):
 
 	return null
 
+func visitForStmt(stmt: For):
+	var iterable = evaluate(stmt.iterable)
+
+	var items: Array
+
+	# create ranges
+	if iterable is int or iterable is float:
+		for i in iterable:
+			items.append(i)
+	elif iterable is Array:
+		items = iterable
+	elif iterable is Dictionary:
+		items = iterable.keys()
+	elif iterable is String:
+		for i in iterable:
+			items.append(i)
+	else:
+		var error = RuntimeError.new(stmt.name, "Can not iterate over" + iterable + " type")
+
+	var previousEnv = environment
+	environment = LoxEnvironment.new(previousEnv)
+
+	for item in items:
+		environment.define(stmt.index.lexeme, item)
+		execute(stmt.body)
+
+	environment = previousEnv
+	return null
+
 func visitAssignExpr(expr: Assign):
 	var value = evaluate(expr.value)
 
-	var distance: int = locals.get(expr)
+	var distance = locals.get(expr)
 	if distance != null:
 		environment.assignAt(distance, expr.name, value)
 	else:
@@ -139,9 +230,17 @@ func visitCallExpr(expr: Call):
 		push_error(error.to_string())
 
 	var function: LoxCallable = callee
-	if arguments.size() != function.arity():
-		var error = RuntimeError.new(expr.paren, "Expected %d arguments but got %d." % [function.arity(), arguments.size()])
+
+	# This is currently being tested
+	if arguments.size() < function.minArity():
+		var error = RuntimeError.new(expr.paren, "Expected at least %d arguments but got %d." % [function.minArity(), arguments.size()])
 		push_error(error.to_string())
+		return null
+
+	if arguments.size() > function.arity():
+		var error = RuntimeError.new(expr.paren, "Expected at most %d arguments but got %d." % [function.arity(), arguments.size()])
+		push_error(error.to_string())
+		return null
 
 	return function.loxCall(self, arguments)
 
@@ -220,12 +319,12 @@ func lookUpVariable(name: Token, expr: Expr) -> Variant:
 
 
 func checkNumberOperand(operator: Token, operand: Variant):
-	if operand is float: return
+	if operand is float or operand is int: return
 	var error = RuntimeError.new(operator, "operand most be a number")
 	push_error(error.to_string()) # Possibly RuntimeError class is not necessary
 
 func checkNumberOperands(operator: Token, right: Variant, left: Variant):
-	if left is float and right is float: return
+	if left is float or left is int and right is float or right is int: return
 	var error = RuntimeError.new(operator, "operands most be a numbers")
 	push_error(error.to_string()) # Possibly RuntimeError class is not necessary
 

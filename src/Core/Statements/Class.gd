@@ -1,5 +1,5 @@
-extends Stmt
-class_name Class
+extends Stmt 
+class_name Class 
 
 var name: Token
 var superclass: Variable

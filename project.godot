@@ -10,15 +10,19 @@ config_version=5
 
 [application]
 
-config/name="Lox-GDScript"
-run/main_scene="uid://cqow47bch5ocs"
+config/name="GDBraces"
+run/main_scene="uid://5qjgg0res2p2"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/GDBraces/plugin.cfg")
 
 [file_customization]
 
 folder_colors={
-"res://src/": "green"
+"res://src/": "blue"
 }
 
 [rendering]

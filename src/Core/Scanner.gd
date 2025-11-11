@@ -11,23 +11,30 @@ var line: int = 1
 static var keywords: Dictionary = {
 	"and": Token.TokenType.AND,
 	"class": Token.TokenType.CLASS,
+	"classname": Token.TokenType.CLASS_NAME,
+	"extends": Token.TokenType.EXTENDS,
 	"else": Token.TokenType.ELSE,
 	"false": Token.TokenType.FALSE,
 	"for": Token.TokenType.FOR,
 	"func": Token.TokenType.FUNC,
 	"if": Token.TokenType.IF,
+	"elif": Token.TokenType.ELIF,
 	"nil": Token.TokenType.NIL,
 	"or": Token.TokenType.OR,
 	"print": Token.TokenType.PRINT,
 	"return": Token.TokenType.RETURN,
+	"await": Token.TokenType.AWAIT,
 	"super": Token.TokenType.SUPER,
 	"self": Token.TokenType.SELF,
 	"true": Token.TokenType.TRUE,
 	"var": Token.TokenType.VAR,
+	"signal": Token.TokenType.SIGNAL,
 	"const": Token.TokenType.CONST, # Added for my own sintax
 	"get": Token.TokenType.GET, # Added for my own sintax
 	"set": Token.TokenType.SET, # Added for my own sintax
 	"while": Token.TokenType.WHILE,
+	"break": Token.TokenType.BREAK,
+	"in": Token.TokenType.IN,
 }
 
 
@@ -56,7 +63,12 @@ func scanToken() -> void:
 		'}': addToken(Token.TokenType.RIGHT_BRACE)
 		',': addToken(Token.TokenType.COMMA)
 		'.': addToken(Token.TokenType.DOT)
-		'-': addToken(Token.TokenType.MINUS)
+		'@': addToken(Token.TokenType.AT)
+		'-':
+			if isMatch('>'):
+				addToken(Token.TokenType.ARROW)
+			else:
+				addToken(Token.TokenType.MINUS)
 		'+': addToken(Token.TokenType.PLUS)
 		';': addToken(Token.TokenType.SEMICOLON)
 		'*': addToken(Token.TokenType.STAR)
@@ -101,8 +113,11 @@ func number():
 		advance()
 
 		while (isDigit(peek())): advance()
-
-	addToken(Token.TokenType.NUMBER, source.substr(start, current - start).to_float())
+	
+	var str_number = source.substr(start, current - start)
+	var value = str_number.to_int() if str_number.is_valid_int() else str_number.to_float()
+		
+	addToken(Token.TokenType.NUMBER, value)
 
 func string():
 	while (peek() != '"' and !isAtEnd()):

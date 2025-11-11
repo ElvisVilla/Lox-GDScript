@@ -18,19 +18,21 @@ var interpreter: Interpreter
 var scopes: Array = []
 var currentFunction: FunctionType = FunctionType.NONE
 var currentClass: ClassType = ClassType.NONE
+var currentFuncReturnType: Token
 
 func _init(interpreter: Interpreter) -> void:
 	self.interpreter = interpreter
 
+## resolve an array of statements
 func resolve(statements: Array[Stmt]):
 	for stmt: Stmt in statements:
 		stmtResolve(stmt)
 
-# overload: resolve single stmt
+## overload: resolve single stmt
 func stmtResolve(stmt: Stmt):
 	stmt.accept(self)
 
-# overload: resolve single expr
+## overload: resolve single expr
 func exprResolve(expr: Expr):
 	expr.accept(self)
 
@@ -75,6 +77,40 @@ func visitClassStmt(stmt: Class):
 		
 		define(field.name)
 
+		# Resolve getter
+		if not field.getter.is_empty():
+			var enclosingFunction = currentFunction
+			currentFunction = FunctionType.METHOD
+			beginScope()
+			
+			# Make the field itself available in the getter
+			scopes[scopes.size() - 1][field.name.lexeme] = true
+			
+			# Resolve all statements in getter
+			resolve(field.getter)
+			
+			endScope()
+			currentFunction = enclosingFunction
+		
+		# Resolve setter
+		if not field.setter.is_empty():
+			var enclosingFunction = currentFunction
+			currentFunction = FunctionType.METHOD
+			beginScope()
+			
+			# Add setter parameter to scope
+			if field.valueParameter != null:
+				scopes[scopes.size() - 1][field.valueParameter.lexeme] = true
+			
+			# Make the field itself available in the setter
+			scopes[scopes.size() - 1][field.name.lexeme] = true
+			
+			# Resolve all statements in setter
+			resolve(field.setter)
+			
+			endScope()
+			currentFunction = enclosingFunction
+
 	for method: Function in stmt.methods:
 		var declaration := FunctionType.METHOD
 		if method.name.lexeme == "init":
@@ -108,6 +144,13 @@ func visitLoxExpressionStmt(stmt: LoxExpression):
 func visitIfStmt(stmt: If):
 	exprResolve(stmt.condition)
 	stmtResolve(stmt.thenBranch)
+
+	if !stmt.elifBranch.is_empty():
+		for condition in stmt.elifBranch:
+			exprResolve(condition)
+			var branch = stmt.elifBranch[condition]
+			stmtResolve(branch)
+
 	if stmt.elseBranch != null:
 		stmtResolve(stmt.elseBranch)
 	return null
@@ -120,6 +163,19 @@ func visitWhileStmt(stmt: While):
 	exprResolve(stmt.condition)
 	stmtResolve(stmt.body)
 	return null
+	
+func visitForStmt(stmt: For):
+	exprResolve(stmt.iterable)
+	
+	beginScope()
+	
+	declare(stmt.index)
+	define(stmt.index)
+	
+	stmtResolve(stmt.body)
+	
+	endScope()
+	return null
 
 func visitReturnStmt(stmt: Return):
 	if currentFunction == FunctionType.NONE:
@@ -129,7 +185,14 @@ func visitReturnStmt(stmt: Return):
 		if currentFunction == FunctionType.INITIALIZER:
 			Lox.errorWith(stmt.keyword,
 			"Can't return a value from anitializer")
+		if currentFuncReturnType != null and currentFuncReturnType.lexeme == "void":
+			Lox.errorWith(stmt.keyword,
+			"Can't return a value from a void function")
 		exprResolve(stmt.value)
+	# Is the return type valid or even exist?
+	elif currentFuncReturnType != null and currentFuncReturnType.lexeme != "void":
+		Lox.errorWith(stmt.keyword, "func expects return value with type '%s'." % currentFuncReturnType.lexeme)
+
 	return null
 
 # ------------- Expressions -------------
@@ -227,19 +290,22 @@ func resolveLocal(expr: Expr, name):
 		var scope: Dictionary = scopes[i]
 		if scope.has(name.lexeme):
 			var depth: int = scopes.size() - 1 - i
-			# Tell the interpreter how many scopes out this variable was found at
-			# (Interpreter must implement resolve(expr, depth))
+			# Tells how many scopes out this variable was found at
 			interpreter.resolve(expr, depth)
 			return
 
 func resolveFunction(function: Function, type: FunctionType):
 	var enclosingFunction: FunctionType = currentFunction
 	currentFunction = type
+	currentFuncReturnType = function.returnType
+
 	beginScope()
-	for param: Token in function.params:
-		declare(param)
-		define(param)
+	for param: Parameter in function.params:
+		declare(param.name)
+		define(param.name)
+
 	# Resolve the function body (array of statements)
 	resolve(function.body)
 	endScope()
 	currentFunction = enclosingFunction
+	currentFuncReturnType = null
