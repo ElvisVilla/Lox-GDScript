@@ -1,11 +1,12 @@
-[gd_scene load_steps=3 format=3 uid="uid://cqow47bch5ocs"]
+[gd_scene load_steps=3 format=3 uid="uid://5qjgg0res2p2"]
 
-[ext_resource type="Script" uid="uid://6eh4rr6chft2" path="res://src/CodeEntry.gd" id="1_ig7tw"]
-[ext_resource type="Script" uid="uid://sg3hpb8s8k6a" path="res://src/Core/Transpiler/Weapon.gd" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://6eh4rr6chft2" path="res://src/CodeEntry.gd" id="1_glv2v"]
+[ext_resource type="Script" uid="uid://da7uu827v3h2v" path="res://generated/formate.gd" id="2_uu6xs"]
 
-[node name="Main" type="Node" node_paths=PackedStringArray("node2D")]
-script = ExtResource("1_ig7tw")
-node2D = NodePath("Area2D")
+[node name="main" type="Node2D" node_paths=PackedStringArray("node2D")]
+script = ExtResource("1_glv2v")
+node2D = NodePath("Node2D")
 
-[node name="Area2D" type="Node2D" parent="."]
-script = ExtResource("2_0xm2m")
+[node name="Node2D" type="Node2D" parent="."]
+script = ExtResource("2_uu6xs")
+metadata/script = "res://formate.braces"

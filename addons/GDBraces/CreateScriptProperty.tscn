@@ -1,0 +1,66 @@
+[gd_scene load_steps=7 format=3 uid="uid://yfwaxavyllnl"]
+
+[ext_resource type="Script" uid="uid://dn555qh5jkisy" path="res://addons/GDBraces/CreateScriptProperty.gd" id="1_txmwg"]
+[ext_resource type="Script" uid="uid://dx6fwha8wvcn" path="res://addons/GDBraces/GDBraceScript.gd" id="2_dwpdv"]
+[ext_resource type="FontVariation" uid="uid://dmt4s0gk4qrtf" path="res://addons/SF Pro Fonts/bold_variation.tres" id="2_txmwg"]
+[ext_resource type="Texture2D" uid="uid://cu8g8cvpj0ejw" path="res://addons/icons/ScriptExtend.svg" id="4_dwpdv"]
+
+[sub_resource type="Resource" id="Resource_xul1m"]
+script = ExtResource("2_dwpdv")
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_c4dv0"]
+content_margin_left = 2.0
+content_margin_top = 2.0
+content_margin_right = 2.0
+content_margin_bottom = 2.0
+bg_color = Color(0.08627451, 0.32941177, 0.3137255, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+corner_detail = 5
+
+[node name="MarginContainer" type="MarginContainer" node_paths=PackedStringArray("background", "label", "textureRect")]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_vertical = 3
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_bottom = 16
+script = ExtResource("1_txmwg")
+state = 3
+background = NodePath("background")
+label = NodePath("background/HBoxContainer/Label")
+textureRect = NodePath("background/HBoxContainer/TextureRect")
+scrp = SubResource("Resource_xul1m")
+metadata/script = "res://notarial.braces"
+
+[node name="background" type="PanelContainer" parent="."]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_c4dv0")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="background"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="background/HBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_txmwg")
+theme_override_font_sizes/font_size = 32
+text = "With Script"
+
+[node name="Label2" type="Label" parent="background/HBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("2_txmwg")
+theme_override_font_sizes/font_size = 32
+text = "Dash"
+
+[node name="TextureRect" type="TextureRect" parent="background/HBoxContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("4_dwpdv")
+stretch_mode = 5

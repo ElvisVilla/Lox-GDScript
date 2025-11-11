@@ -71,13 +71,13 @@ static func run(source: String):
 		return
 	
 	#RESOLVER
-	var resolver := Resolver.new(interpreter)
-	resolver.resolve(statements)
+	# var resolver := Resolver.new(interpreter)
+	# resolver.resolve(statements)
 
-	if hadError: return
+	# if hadError: return
 
-	# # INTERPRETER
-	interpreter.interpret(statements)
+	# # # INTERPRETER
+	# interpreter.interpret(statements)
 
 
 	var secondTranspiler = Transpiler.new()

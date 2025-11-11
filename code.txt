@@ -1,30 +1,26 @@
-class Weapon {
+@tool
+extends Node
 
-	var number: int = 55
+class GDBrances  {
 
-	func printName(message: int, total: String) {
-		var localVar: 12
-		
-		for i in localVar {
-			print(i)
-		}
+	// new way of  declaration
+	var version: 0.1 // Implicit float
+	var updateButton: Button() // declared and initialized  
+	var removeButton: Button // just declared
 
-		if localVar < 10 and localVar > 0 {
-			print("if")
-		} 
-		elif localVar > 11 and localVar < 20 {
-			print("Elif")
-			print("Elif")
-		}
-		else {
-			print("else")
-		}
+	var isReady := false // Inferred type
+	var name : String = "GDBraces" // Type hint
+
+	func getName() String {
+		return name
 	}
 
-	func getNumber() int {
-		return "Hello"
+	func setName(name: String) {
+		self.name = name
+	}
+
+	// optional parameter
+	func setVersion(version: 0.1) { 
+		self.version = version
 	}
 }
-
-var weapon: Weapon()
-weapon.printName(1,"Hello")
