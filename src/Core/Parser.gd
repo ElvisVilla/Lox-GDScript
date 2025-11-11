@@ -20,7 +20,7 @@ func expression() -> Expr:
 
 # The top Token we can find is considered a declaration [Class | function | Variable]
 func declaration() -> Stmt:
-	if isMatch(Token.TokenType.CLASS): return classDeclaration()
+	if isMatch(Token.TokenType.CLASS, Token.TokenType.EXTENDS, Token.TokenType.CLASS_NAME): return classDeclaration()
 	if isMatch(Token.TokenType.FUNC): return function("function")
 	if isMatch(Token.TokenType.VAR): return varDeclaration()
 	return statement()
@@ -28,11 +28,23 @@ func declaration() -> Stmt:
 ## structure the class Stmt as the main Node of this Stmt, will hold inside
 ## variables, methods, properties, etc.
 func classDeclaration() -> Stmt:
-	var name = consume(Token.TokenType.IDENTIFIER, "Expect class name.")
-
+	var name = null
 	var superclass: Variable = null
-	if isMatch(Token.TokenType.COLON, Token.TokenType.EXTENDS):
+
+	# optional class declaration 
+	# extends TYPE class IDENTIFIER
+	if previous().type == Token.TokenType.EXTENDS:
 		consume(Token.TokenType.IDENTIFIER, "Expect superclass name.")
+		superclass = Variable.create(previous())
+		consume(Token.TokenType.CLASS, "Expect class or classname keyword")
+		name = consume(Token.TokenType.IDENTIFIER, "Expect class name.")
+
+	# class IDENTIFIER extends TYPE		
+	elif previous().type in [Token.TokenType.CLASS_NAME, Token.TokenType.CLASS]:
+		name = consume(Token.TokenType.IDENTIFIER, "Expect class name.")
+		if !isMatch(Token.TokenType.EXTENDS, Token.TokenType.COLON):
+			error(peek(), "Expect 'extends' or ':' after class identifier")
+		consume(Token.TokenType.IDENTIFIER, "Expect superclass type after 'extends' or ':'.")
 		superclass = Variable.create(previous())
 
 	consume(Token.TokenType.LEFT_BRACE, "Expect '{' before class body.")
